@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dandan008-个人主页</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<!-- 本文件由 build.py 从 content.json 生成；改文字请用 编辑.bat -->
+<!-- 动态鼠标画布：所有光标、拖拽选框都画在这里 -->
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">Dandan008<span class="dot">.</span></div>
+    <nav>
+      <a href="#about">关于</a>
+      <a href="#work">作品</a>
+      <a href="#links">链接</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="top">
+    <p class="eyebrow" data-piece>Dandan008个人主页 · 2026</p>
+    <h1 data-piece>把想法<br /><span class="grad">一个个搭起来</span></h1>
+    <p class="lede" data-piece>
+      这里是我的地盘：写点东西、放几张图、链到我去过的地方。滚动页面，我会帮你把内容「画」出来。
+    </p>
+    <div class="actions" data-piece>
+      <a class="btn primary" href="#work">看看作品</a>
+      <a class="btn ghost" href="#links">我的链接</a>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2 data-piece>关于我</h2>
+    <p data-piece>一个爱折腾的人。写代码、拍照、偶尔打游戏，喜欢把没意思的东西做得有意思一点。</p>
+    <p data-piece>这个页面本身就是个实验：光标会自己动，会拉框，把你正在看的这一块慢慢框出来。</p>
+    <ul class="facts">
+      <li data-piece><b>在做的</b> 一些自用的小工具</li>
+      <li data-piece><b>在学的</b> 神秘高中课程</li>
+      <li data-piece><b>在玩的</b> 卡丁车-电脑-AI</li>
+    </ul>
+  </section>
+
+  <section id="work">
+    <h2 data-piece>作品</h2>
+    <div class="cards">
+      <article class="card" data-piece>
+        <div class="tag">工具</div>
+        <h3>工具箱</h3>
+        <p>把零碎的小程序收进一个本地入口，双击就能开。</p>
+      </article>
+      <article class="card" data-piece>
+        <div class="tag">实验</div>
+        <h3>光标画布</h3>
+        <p>就是你现在看到的这个：多光标协作，拖拽拉框。</p>
+      </article>
+      <article class="card" data-piece>
+        <div class="tag">记录</div>
+        <h3>随手记</h3>
+        <p>一些没整理完的想法，先放着。</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="links">
+    <h2 data-piece>链接</h2>
+    <ul class="links">
+      <li data-piece><a href="https://github.com" target="_blank" rel="noreferrer">GitHub <span>→</span></a></li>
+      <li data-piece><a href="https://www.bilibili.com" target="_blank" rel="noreferrer">Bilibili <span>→</span></a></li>
+      <li data-piece><button type="button" class="link-copy" data-copy="Dandanx123xx@163.com">Email <span class="hint">复制</span></button></li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <p>© 2026 Dandan008-XXC</p>
+</footer>
+
+<script>
+// 点一下就复制（Email 之类不想跳走的链接）
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('.link-copy');
+  if (!btn) return;
+  const text = btn.dataset.copy || '';
+  const hint = btn.querySelector('.hint');
+  const done = () => {
+    const old = hint.textContent;
+    btn.classList.add('copied');
+    hint.textContent = '已复制';
+    setTimeout(() => { btn.classList.remove('copied'); hint.textContent = old; }, 1600);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, () => legacyCopy(text, done));
+  } else {
+    legacyCopy(text, done);
+  }
+});
+
+function legacyCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch (err) { alert('复制失败，手动选一下：' + text); }
+  ta.remove();
+}
+</script>
+<script src="fx.js"></script>
+</body>
+</html>

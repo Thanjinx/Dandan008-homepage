@@ -1,0 +1,100 @@
+{
+  "site": {
+    "title": "Dandan008-个人主页",
+    "brand": "Dandan008",
+    "brand_dot": ".",
+    "footer": "© 2026 Dandan008-XXC"
+  },
+  "nav": [
+    {
+      "label": "关于",
+      "href": "#about"
+    },
+    {
+      "label": "作品",
+      "href": "#work"
+    },
+    {
+      "label": "链接",
+      "href": "#links"
+    }
+  ],
+  "hero": {
+    "eyebrow": "Dandan008个人主页 · 2026",
+    "title_1": "把想法",
+    "title_2": "一个个搭起来",
+    "lede": "这里是我的地盘：写点东西、放几张图、链到我去过的地方。滚动页面，我会帮你把内容「画」出来。",
+    "buttons": [
+      {
+        "label": "看看作品",
+        "href": "#work",
+        "style": "primary"
+      },
+      {
+        "label": "我的链接",
+        "href": "#links",
+        "style": "ghost"
+      }
+    ]
+  },
+  "about": {
+    "title": "关于我",
+    "paragraphs": [
+      "一个爱折腾的人。写代码、拍照、偶尔打游戏，喜欢把没意思的东西做得有意思一点。",
+      "这个页面本身就是个实验：光标会自己动，会拉框，把你正在看的这一块慢慢框出来。"
+    ],
+    "facts": [
+      {
+        "key": "在做的",
+        "value": "一些自用的小工具"
+      },
+      {
+        "key": "在学的",
+        "value": "神秘高中课程"
+      },
+      {
+        "key": "在玩的",
+        "value": "卡丁车-电脑-AI"
+      }
+    ]
+  },
+  "work": {
+    "title": "作品",
+    "cards": [
+      {
+        "tag": "工具",
+        "title": "工具箱",
+        "desc": "把零碎的小程序收进一个本地入口，双击就能开。"
+      },
+      {
+        "tag": "实验",
+        "title": "光标画布",
+        "desc": "就是你现在看到的这个：多光标协作，拖拽拉框。"
+      },
+      {
+        "tag": "记录",
+        "title": "随手记",
+        "desc": "一些没整理完的想法，先放着。"
+      }
+    ]
+  },
+  "links": {
+    "title": "链接",
+    "items": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com",
+        "external": true
+      },
+      {
+        "label": "Bilibili",
+        "href": "https://www.bilibili.com",
+        "external": true
+      },
+      {
+        "label": "Email",
+        "copy": "Dandanx123xx@163.com"
+      }
+    ]
+  }
+}
