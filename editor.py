@@ -12,6 +12,7 @@
 
 import json
 import mimetypes
+import subprocess
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -54,6 +55,13 @@ PAGE = """<!DOCTYPE html>
   button:hover { border-color:var(--accent); }
   button.primary { background:var(--accent); border-color:var(--accent); color:#08101c; font-weight:600; }
   button.ghost { background:transparent; }
+  button.publish { border-color:var(--accent); color:var(--accent); background:transparent; font-weight:600; }
+  button.publish:disabled, button.primary:disabled { opacity:.5; cursor:default; }
+  #logbox { position:fixed; left:16px; bottom:16px; max-width:52vw; max-height:32vh; overflow:auto;
+            background:#0b1018; border:1px solid var(--line); border-radius:10px; padding:8px 12px;
+            font-size:12px; display:none; z-index:60; box-shadow:0 10px 30px rgba(0,0,0,.5); }
+  #logbox b { color:#cfe0f5; font-weight:600; }
+  #logbox pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-all; color:#8fa3ba; line-height:1.5; }
   main { flex:1; display:flex; min-height:0; }
   #form { width:52%; overflow:auto; padding:18px 20px 60px; }
   #preview-wrap { width:48%; border-left:1px solid var(--line); background:#05070a; }
@@ -92,6 +100,7 @@ PAGE = """<!DOCTYPE html>
   <span class="hint">只改文字，保存后自动重建页面</span>
   <span class="spacer"></span>
   <button class="primary" onclick="save()">保存</button>
+  <button class="publish" onclick="publish()">发布</button>
   <button class="ghost" onclick="document.getElementById('preview').contentWindow.location.reload()">刷新预览</button>
   <span id="status"></span>
 </header>
@@ -250,15 +259,56 @@ async function save() {
   }
 }
 
+function showLog(title, text) {
+  document.getElementById('logtitle').textContent = title;
+  document.getElementById('log').textContent = text || '';
+  document.getElementById('logbox').style.display = 'block';
+}
+
+async function publish() {
+  const msg = prompt('这次改了什么？（写一句更新说明，方便以后回滚）', '更新内容');
+  if (msg === null) return;
+  const message = msg.trim() || '更新内容';
+  const btns = document.querySelectorAll('button');
+  btns.forEach(b => b.disabled = true);
+  setStatus('发布中…');
+  try {
+    const res = await fetch('/api/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+    const out = await res.json();
+    if (!out.ok) {
+      setStatus('发布失败', 'err');
+      showLog('发布失败', out.log || out.error || '没有返回日志');
+      return;
+    }
+    setStatus('已发布', 'ok');
+    showLog('发布成功 · ' + message, out.log);
+    setTimeout(() => setStatus(''), 6000);
+  } catch (e) {
+    setStatus('发布失败：' + e.message, 'err');
+    showLog('发布失败', String(e));
+  } finally {
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
 (async () => {
   const res = await fetch('/api/content');
   data = await res.json();
   render();
 })();
 </script>
+<div id="logbox"><b id="logtitle">发布日志</b><pre id="log"></pre></div>
 </body>
 </html>
 """
+
+
+def join_log(parts):
+    return (chr(10) * 2).join(parts)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -295,7 +345,71 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, "not found")
         self._send(404, "not found")
 
+    def _git(self, *args):
+        """跑一条 git 命令，返回 (成功, 输出)。"""
+        try:
+            proc = subprocess.run(
+                ["git", *args],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=180,
+            )
+        except Exception as exc:
+            return False, "git %s 失败：%s" % (" ".join(args), exc)
+        out = ((proc.stdout or "") + (proc.stderr or "")).strip()
+        return proc.returncode == 0, out
+
+    def _publish(self, message):
+        """add → commit（有改动才提交）→ push。返回 (成功, 日志, 错误)。"""
+        log = []
+        ok, out = self._git("add", "-A")
+        log.append("$ git add -A\n" + (out or "(无输出)"))
+        if not ok:
+            return False, join_log(log), "git add 失败"
+
+        _, pending = self._git("status", "--porcelain")
+        if pending:
+            ok, out = self._git("commit", "-m", message)
+            log.append("$ git commit -m " + message + "\n" + (out or "(无输出)"))
+            if not ok:
+                return False, join_log(log), "git commit 失败"
+        else:
+            log.append("没有新的改动，跳过 commit。")
+
+        ok, out = self._git("push")
+        log.append("$ git push\n" + (out or "(无输出)"))
+        if not ok:
+            low = out.lower()
+            if "authentication" in low or "credential" in low or "permission" in low:
+                return False, join_log(log), "推送被拒：需要重新登录 GitHub"
+            return False, join_log(log), "git push 失败"
+        return True, join_log(log), ""
+
+
+    def _handle_publish(self):
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            raw = self.rfile.read(length).decode("utf-8") if length else "{}"
+            message = (json.loads(raw or "{}").get("message") or "更新内容").strip()[:120]
+            ok, log, error = self._publish(message)
+            self._send(
+                200,
+                json.dumps({"ok": ok, "log": log, "error": error}, ensure_ascii=False),
+                "application/json; charset=utf-8",
+            )
+        except Exception as exc:
+            self._send(
+                500,
+                json.dumps({"ok": False, "error": str(exc), "log": ""}, ensure_ascii=False),
+                "application/json; charset=utf-8",
+            )
+
     def do_POST(self):
+        if self.path == "/api/publish":
+            return self._handle_publish()
         if self.path != "/api/save":
             return self._send(404, "not found")
         try:
