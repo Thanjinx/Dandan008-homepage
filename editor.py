@@ -307,6 +307,16 @@ async function publish() {
 """
 
 
+def decode_git(data):
+    """git 输出优先按 UTF-8 解，解不开就当 GBK（中文 Windows 的 git 常是 GBK）。"""
+    if not data:
+        return ""
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data.decode("gbk", "replace")
+
+
 def join_log(parts):
     return (chr(10) * 2).join(parts)
 
@@ -345,22 +355,22 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, "not found")
         self._send(404, "not found")
 
-    def _git(self, *args):
-        """跑一条 git 命令，返回 (成功, 输出)。"""
+    def _git(self, *args, stdin_bytes=None):
+        """跑一条 git 命令，返回 (成功, 输出)。
+
+        不指定 text=True：Windows 上 git 的输出可能是 GBK，统一收字节再自己解码。
+        """
         try:
             proc = subprocess.run(
                 ["git", *args],
                 cwd=str(ROOT),
                 capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
+                input=stdin_bytes,
                 timeout=180,
             )
         except Exception as exc:
             return False, "git %s 失败：%s" % (" ".join(args), exc)
-        out = ((proc.stdout or "") + (proc.stderr or "")).strip()
-        return proc.returncode == 0, out
+        return proc.returncode == 0, decode_git(proc.stdout) + decode_git(proc.stderr)
 
     def _publish(self, message):
         """add → commit（有改动才提交）→ push。返回 (成功, 日志, 错误)。"""
@@ -372,7 +382,8 @@ class Handler(BaseHTTPRequestHandler):
 
         _, pending = self._git("status", "--porcelain")
         if pending:
-            ok, out = self._git("commit", "-m", message)
+            # 走 stdin 传提交信息：绕开 Windows 命令行参数的编码转换，保证是 UTF-8
+            ok, out = self._git("commit", "-F", "-", stdin_bytes=message.encode("utf-8"))
             log.append("$ git commit -m " + message + "\n" + (out or "(无输出)"))
             if not ok:
                 return False, join_log(log), "git commit 失败"
