@@ -384,7 +384,7 @@ class Handler(BaseHTTPRequestHandler):
         if pending:
             # 走 stdin 传提交信息：绕开 Windows 命令行参数的编码转换，保证是 UTF-8
             ok, out = self._git("commit", "-F", "-", stdin_bytes=message.encode("utf-8"))
-            log.append("$ git commit -m " + message + "\n" + (out or "(无输出)"))
+            log.append("$ git commit " + message + "\n" + (out or "(无输出)"))
             if not ok:
                 return False, join_log(log), "git commit 失败"
         else:
