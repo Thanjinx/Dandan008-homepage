@@ -284,7 +284,8 @@ def shelf_html(notes):
         if kind == "image" and img:
             cells.append(
                 '      <li class="shelf-item is-plate"><button class="plate" data-i="%d" aria-label="%s">'
-                '<img src="../%s" alt="%s" loading="lazy" /></button></li>' % (i, title, img, title)
+                '<img src="../%s" alt="%s" loading="lazy" /></button>'
+                '<span class="plate-cap">%s</span></li>' % (i, title, img, title, title)
             )
         else:
             cells.append(
