@@ -57,16 +57,23 @@ def render(data):
         for f in about.get("facts", [])
     )
 
-    cards_html = "\n".join(
-        """      <article class="card" data-piece>
-        <div class="tag">{tag}</div>
-        <h3>{title}</h3>
-        <p>{desc}</p>
-      </article>""".format(
-            tag=esc(c.get("tag", "")), title=esc(c.get("title", "")), desc=esc(c.get("desc", ""))
-        )
-        for c in work.get("cards", [])
-    )
+    card_parts = []
+    for c in work.get("cards", []):
+        inner = (
+            '        <div class="tag">{}</div>\n'
+            '        <h3>{}</h3>\n'
+            '        <p>{}</p>'
+        ).format(esc(c.get("tag", "")), esc(c.get("title", "")), esc(c.get("desc", "")))
+        if c.get("page"):
+            card_parts.append(
+                '      <a class="card" data-piece href="p/{}.html">\n{}\n'
+                '        <span class="more">看详情 →</span>\n      </a>'.format(esc(c["page"]), inner)
+            )
+        else:
+            card_parts.append(
+                '      <article class="card" data-piece>\n{}\n      </article>'.format(inner)
+            )
+    cards_html = "\n".join(card_parts)
 
     link_rows = []
     for item in links.get("items", []):
@@ -261,13 +268,66 @@ function legacyCopy(text, done) {{
     )
 
 
+def render_page(site, page):
+    """单个详情页：复用 style.css，不带光标动画，读起来干净。"""
+    paras = "\n".join(
+        "  <p>{}</p>".format(esc(t)) for t in str(page.get("body", "")).split("\n") if t.strip()
+    )
+    return """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{title} · {brand}</title>
+<link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="../index.html">{brand}<span class="dot">{dot}</span></a>
+    <nav><a href="../index.html">返回首页</a></nav>
+  </div>
+</header>
+<main class="article">
+  <p class="eyebrow">{tag}</p>
+  <h1>{title}</h1>
+  <p class="lede">{lede}</p>
+{paras}
+  <p class="back"><a class="btn ghost" href="../index.html">返回首页</a></p>
+</main>
+<footer><p>{footer}</p></footer>
+</body>
+</html>
+""".format(
+        title=esc(page.get("title", "")),
+        brand=esc(site.get("brand", "")),
+        dot=esc(site.get("brand_dot", ".")),
+        tag=esc(page.get("tag", "")),
+        lede=esc(page.get("lede", "")),
+        paras=paras,
+        footer=esc(site.get("footer", "")),
+    )
+
+
 def build():
     data = json.loads(CONTENT.read_text(encoding="utf-8"))
     OUTPUT.write_text(render(data), encoding="utf-8", newline="\n")
-    return OUTPUT
+
+    out_dir = ROOT / "p"
+    out_dir.mkdir(exist_ok=True)
+    site = data.get("site", {})
+    written = []
+    for page in (data.get("pages") or {}).get("items", []):
+        pid = str(page.get("id", "")).strip()
+        if not pid:
+            continue
+        target = out_dir / (pid + ".html")
+        target.write_text(render_page(site, page), encoding="utf-8", newline="\n")
+        written.append(target)
+    return OUTPUT, written
 
 
 if __name__ == "__main__":
-    path = build()
+    path, pages = build()
     pieces = path.read_text(encoding="utf-8").count("data-piece")
-    print("已生成 {} （{} 个可动块）".format(path.name, pieces))
+    print("已生成 {} （{} 个可动块，{} 个详情页）".format(path.name, pieces, len(pages)))

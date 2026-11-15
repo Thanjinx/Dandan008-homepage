@@ -465,3 +465,28 @@ body.away .tower-slit { opacity: 1; }
 @media (max-width: 560px) {
   .tower, .tower-slit { display: none; }
 }
+
+/* 作品卡片可以点进详情页 */
+a.card { text-decoration: none; color: inherit; }
+a.card:hover { border-color: rgba(88,166,255,.55); }
+a.card .more {
+  display: block; margin-top: 14px;
+  font: 10.5px/1 ui-monospace, Consolas, monospace;
+  letter-spacing: .16em; color: var(--accent); opacity: .7;
+}
+a.card:hover .more { opacity: 1; }
+
+/* 详情页 */
+.article { max-width: 720px; margin: 0 auto; padding: clamp(72px, 10vh, 120px) 24px 96px; }
+.article h1 { font-size: clamp(28px, 4.2vw, 46px); line-height: 1.24; margin: 12px 0 18px; }
+.article .lede { color: var(--dim); margin-bottom: 34px; }
+.article p { color: var(--txt); line-height: 1.95; margin: 0 0 20px; }
+.article .back { margin-top: 56px; }
+.nav .brand { text-decoration: none; color: inherit; }
+
+/* 跨页过渡（Chrome / Edge 支持时生效，不支持就普通跳转） */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: vt-out .16s ease both; }
+::view-transition-new(root) { animation: vt-in .26s ease both; }
+@keyframes vt-out { to { opacity: 0; transform: translateY(-8px); } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(10px); } }

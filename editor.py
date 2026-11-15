@@ -143,6 +143,10 @@ const SPEC = [
   ], list:{ key:'cards', label:'卡片', add:'加一张卡片', fields:[
       ['tag','标签'], ['title','卡片标题'], ['desc','描述','textarea']
   ]}},
+  { key:'pages', title:'详情页', list:{ key:'items', label:'页面', add:'加一个页面', fields:[
+      ['id','文件名（英文，别用空格）'], ['tag','标签'], ['title','标题'],
+      ['lede','开头一句','textarea'], ['body','正文（一行一段）','textarea']
+  ]}},
   { key:'links', title:'链接', fields:[
       ['title','小标题']
   ], list:{ key:'items', label:'链接', add:'加一条链接', fields:[
