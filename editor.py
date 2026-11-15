@@ -73,14 +73,19 @@ PAGE = """<!DOCTYPE html>
   #logbox b { color:#cfe0f5; font-weight:600; }
   #logbox pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-all; color:#8fa3ba; line-height:1.5; }
   main { flex:1; display:flex; min-height:0; }
-  #form { width:52%; overflow:auto; padding:18px 20px 60px; }
+  .left { width:52%; display:flex; flex-direction:column; min-height:0; }
+  #tabs { display:flex; gap:4px; flex-wrap:wrap; padding:10px 16px 0; background:var(--panel); border-bottom:1px solid var(--line); }
+  #tabs button { background:transparent; border:1px solid transparent; border-bottom:none; border-radius:8px 8px 0 0; color:var(--dim); padding:7px 13px; font-size:13px; }
+  #tabs button:hover { color:var(--txt); border-color:var(--line); }
+  #tabs button.active { color:var(--accent); background:var(--bg); border-color:var(--line); font-weight:600; margin-bottom:-1px; }
+  #form { flex:1; overflow:auto; padding:16px 20px 60px; }
   #preview-wrap { width:48%; border-left:1px solid var(--line); background:#05070a; }
   #preview { width:100%; height:100%; border:0; }
   section {
     border:1px solid var(--line); border-radius:12px; padding:14px 16px;
     margin-bottom:14px; background:var(--panel);
   }
-  section > h2 { font-size:13px; margin:0 0 12px; color:var(--dim); font-weight:600; letter-spacing:.04em; }
+  section > h2 { display:none; }
   label { display:block; margin-bottom:10px; }
   label > span { display:block; font-size:12px; color:var(--dim); margin-bottom:4px; }
   input, textarea {
@@ -119,7 +124,10 @@ PAGE = """<!DOCTYPE html>
   <span id="status"></span>
 </header>
 <main>
-  <div id="form"></div>
+  <div class="left">
+    <div id="tabs"></div>
+    <div id="form"></div>
+  </div>
   <div id="preview-wrap"><iframe id="preview" src="/files/index.html"></iframe></div>
 </main>
 
@@ -154,7 +162,7 @@ const SPEC = [
       ['id','文件名（英文，别用空格）'], ['tag','标签'], ['title','标题'],
       ['lede','开头一句','textarea'], ['body','正文（一行一段）','textarea']
   ]}},
-  { key:'notes', title:'随手记（书架）', fields:[
+  { key:'notes', title:'随手记', fields:[
       ['title','书架小标题'],
       ['lede','一句话介绍','textarea']
   ], list:{ key:'items', label:'书架上的书', add:'加一本书', fields:[
@@ -354,6 +362,34 @@ function render() {
 
     form.appendChild(box);
   }
+  buildTabs();
+}
+
+let activeTab = 0;
+
+function buildTabs() {
+  const tabs = document.getElementById("tabs");
+  const secs = Array.prototype.slice.call(form.querySelectorAll("section"));
+  tabs.innerHTML = "";
+  if (activeTab >= secs.length) activeTab = 0;
+  secs.forEach(function (sec, i) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = SPEC[i] ? SPEC[i].title : String(i);
+    b.onclick = function () { activeTab = i; showTab(); };
+    tabs.appendChild(b);
+  });
+  showTab();
+}
+
+function showTab() {
+  const tabs = document.getElementById("tabs");
+  const secs = Array.prototype.slice.call(form.querySelectorAll("section"));
+  secs.forEach(function (sec, i) { sec.style.display = i === activeTab ? "" : "none"; });
+  Array.prototype.forEach.call(tabs.children, function (b, i) {
+    b.classList.toggle("active", i === activeTab);
+  });
+  form.scrollTop = 0;
 }
 
 function refreshPreview() {
