@@ -420,15 +420,16 @@ body.away .tower-slit { opacity: 1; }
 .tower:not(.in) .tw-minis { opacity: 0; }
 .tw-mini { animation: twFloat 7.5s ease-in-out infinite; }
 .tw-mini path {
-  fill: none;
-  stroke: rgba(224,185,106,.52);
+  fill: rgba(224,185,106,.03);
+  stroke: rgba(224,185,106,.50);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
-.tw-mini path.tw-mini-door { stroke: rgba(240,217,168,.55); }
+.tw-mini-dome { fill: rgba(224,185,106,.10); stroke: rgba(224,185,106,.58); }
+.tw-mini .tw-mini-hair { stroke: rgba(224,185,106,.20); fill: none; }
 @keyframes twFloat {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-5px); }
+  50%      { transform: translateY(-3px); }
 }
 .tw-tip { fill: #f0d9a8; filter: drop-shadow(0 0 6px rgba(240,217,168,.9)); }
 
