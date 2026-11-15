@@ -268,7 +268,85 @@ function legacyCopy(text, done) {{
     )
 
 
-def render_page(site, page):
+def shelf_html(notes):
+    """随手记页面的书架：书脊 + 图片板 + 下方阅读区。"""
+    items = (notes or {}).get("items") or []
+    if not items:
+        return ""
+    cells, panels = [], []
+    for i, it in enumerate(items):
+        kind = str(it.get("kind") or "text").strip()
+        title = esc(it.get("title", ""))
+        date = esc(it.get("date", ""))
+        summary = esc(it.get("summary", ""))
+        img = esc(it.get("image", "")).strip()
+        h = 150 + (i * 17) % 58
+        if kind == "image" and img:
+            cells.append(
+                '      <li class="shelf-item is-plate"><button class="plate" data-i="%d" aria-label="%s">'
+                '<img src="../%s" alt="%s" loading="lazy" /></button></li>' % (i, title, img, title)
+            )
+        else:
+            cells.append(
+                '      <li class="shelf-item"><button class="spine" data-i="%d" style="--h:%dpx">'
+                '<span class="spine-t">%s</span><span class="spine-d">%s</span></button></li>' % (i, h, title, date)
+            )
+        body_txt = str(it.get("body", ""))
+        paras = ""
+        parts = [t for t in body_txt.split(chr(10)) if t.strip()]
+        if parts:
+            paras = chr(10).join("        <p>" + esc(t) + "</p>" for t in parts)
+        pic = ""
+        if img:
+            pic = '        <figure><img src="../%s" alt="%s" loading="lazy" /></figure>' % (img, title) + chr(10)
+        tag = "图片" if kind == "image" else "随笔"
+        panels.append(
+            '      <article class="note" data-i="%d" hidden>' % i + chr(10)
+            + '        <p class="note-meta">%s · %s</p>' % (date, tag) + chr(10)
+            + '        <h2>%s</h2>' % title + chr(10)
+            + '        <p class="note-sum">%s</p>' % summary + chr(10)
+            + pic + paras + chr(10)
+            + "      </article>"
+        )
+    cells_s = chr(10).join(cells)
+    panels_s = chr(10).join(panels)
+    ntitle = esc((notes or {}).get("title", ""))
+    nlede = esc((notes or {}).get("lede", ""))
+    js = """<script>
+  (function () {
+    var buttons = [].slice.call(document.querySelectorAll(".shelf [data-i]"));
+    var notes = [].slice.call(document.querySelectorAll(".reader .note"));
+    function open(i, scroll) {
+      buttons.forEach(function (b) { b.classList.toggle("is-active", b.dataset.i === i); });
+      notes.forEach(function (n) { n.hidden = n.dataset.i !== i; });
+      if (scroll) {
+        var r = document.getElementById("reader");
+        if (r) r.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+    buttons.forEach(function (b) { b.addEventListener("click", function () { open(b.dataset.i, true); }); });
+    if (buttons.length) open(buttons[0].dataset.i, false);
+  })();
+</script>"""
+    head = (
+        '  <section class="shelf-wrap">' + chr(10)
+        + '    <h2 class="shelf-title">' + ntitle + "</h2>" + chr(10)
+        + '    <p class="shelf-lede">' + nlede + "</p>" + chr(10)
+        + '    <div class="shelf">' + chr(10)
+        + '      <ul class="shelf-row">' + chr(10)
+        + cells_s + chr(10)
+        + "      </ul>" + chr(10)
+        + '      <div class="shelf-board"></div>' + chr(10)
+        + "    </div>" + chr(10)
+        + '    <div class="reader" id="reader">' + chr(10)
+        + panels_s + chr(10)
+        + "    </div>" + chr(10)
+        + "  </section>" + chr(10)
+    )
+    return head + js
+
+
+def render_page(site, page, notes=None):
     """单个详情页：复用 style.css，不带光标动画，读起来干净。"""
     paras = "\n".join(
         "  <p>{}</p>".format(esc(t)) for t in str(page.get("body", "")).split("\n") if t.strip()
@@ -294,6 +372,7 @@ def render_page(site, page):
   <p class="lede">{lede}</p>
 {paras}
   <p class="back"><a class="btn ghost" href="../index.html">返回首页</a></p>
+{shelf}
 </main>
 <footer><p>{footer}</p></footer>
 </body>
@@ -305,6 +384,7 @@ def render_page(site, page):
         tag=esc(page.get("tag", "")),
         lede=esc(page.get("lede", "")),
         paras=paras,
+        shelf=shelf_html(notes) if page.get("id") == "notes" else "",
         footer=esc(site.get("footer", "")),
     )
 
@@ -322,7 +402,7 @@ def build():
         if not pid:
             continue
         target = out_dir / (pid + ".html")
-        target.write_text(render_page(site, page), encoding="utf-8", newline="\n")
+        target.write_text(render_page(site, page, data.get("notes")), encoding="utf-8", newline="\n")
         written.append(target)
     return OUTPUT, written
 

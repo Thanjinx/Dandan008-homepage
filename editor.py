@@ -12,6 +12,8 @@
 
 import json
 import mimetypes
+import re
+from urllib.parse import urlparse, parse_qs
 import subprocess
 import threading
 import webbrowser
@@ -87,6 +89,10 @@ PAGE = """<!DOCTYPE html>
   }
   input:focus, textarea:focus { outline:none; border-color:var(--accent); }
   textarea { min-height:70px; resize:vertical; }
+
+  .imgrow { display:flex; gap:8px; align-items:center; }
+  .imgrow input[type="text"] { flex:1; }
+  .imgrow button { white-space:nowrap; }
   .item {
     border:1px dashed var(--line); border-radius:10px; padding:10px 12px 4px;
     margin-bottom:10px; position:relative;
@@ -148,6 +154,15 @@ const SPEC = [
       ['id','文件名（英文，别用空格）'], ['tag','标签'], ['title','标题'],
       ['lede','开头一句','textarea'], ['body','正文（一行一段）','textarea']
   ]}},
+  { key:'notes', title:'随手记（书架）', fields:[
+      ['title','书架小标题'],
+      ['lede','一句话介绍','textarea']
+  ], list:{ key:'items', label:'书架上的书', add:'加一本书', fields:[
+      ['id','编号（英文，随便写）'], ['title','书名 / 标题'],
+      ['kind','类型（text 文字 / image 图片）'],
+      ['date','日期（如 2026-11）'], ['summary','封面一句话','textarea'],
+      ['body','正文（一行一段）','textarea'], ['image','图片（点右边选文件上传）','image']
+  ]}},
   { key:'links', title:'链接', fields:[
       ['title','小标题']
   ], list:{ key:'items', label:'链接', add:'加一条链接', fields:[
@@ -208,6 +223,55 @@ function pagePick(label, item, key) {
   return wrap;
 }
 
+function imageField(label, item, key) {
+  const wrap = document.createElement('label');
+  const cap = document.createElement('span');
+  cap.textContent = label;
+  wrap.appendChild(cap);
+  const row = document.createElement('div');
+  row.className = 'imgrow';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = item[key] == null ? '' : item[key];
+  input.addEventListener('input', () => { item[key] = input.value; });
+  const pick = document.createElement('button');
+  pick.type = 'button';
+  pick.className = 'ghost';
+  pick.textContent = '选图片';
+  const file = document.createElement('input');
+  file.type = 'file';
+  file.accept = 'image/*';
+  file.style.display = 'none';
+  pick.onclick = () => file.click();
+  file.onchange = async () => {
+    const f = file.files[0];
+    if (!f) return;
+    pick.disabled = true;
+    pick.textContent = '上传中…';
+    try {
+      const res = await fetch('/api/upload?name=' + encodeURIComponent(f.name), {
+        method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: f
+      });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || '上传失败');
+      item[key] = out.path;
+      input.value = out.path;
+      setStatus('图片已上传：' + out.path, 'ok');
+      refreshPreview();
+    } catch (e) {
+      setStatus('上传失败：' + e.message, 'err');
+    } finally {
+      pick.disabled = false;
+      pick.textContent = '选图片';
+    }
+  };
+  row.appendChild(input);
+  row.appendChild(pick);
+  row.appendChild(file);
+  wrap.appendChild(row);
+  return wrap;
+}
+
 function render() {
   form.innerHTML = '';
   for (const sec of SPEC) {
@@ -238,6 +302,10 @@ function render() {
           for (const [k, label, type] of sec.list.fields) {
             if (type === 'pages') {
               wrap.appendChild(pagePick(label, item, k));
+              continue;
+            }
+            if (type === 'image') {
+              wrap.appendChild(imageField(label, item, k));
               continue;
             }
             wrap.appendChild(field(label, item[k], v => {
@@ -288,6 +356,12 @@ function render() {
   }
 }
 
+function refreshPreview() {
+  const f = document.getElementById('preview');
+  if (!f) return;
+  f.src = '/files/index.html?_=' + Date.now();
+}
+
 async function save() {
   setStatus('保存中…');
   try {
@@ -299,7 +373,7 @@ async function save() {
     const out = await res.json();
     if (!out.ok) throw new Error(out.error || '保存失败');
     setStatus('已保存', 'ok');
-    document.getElementById('preview').contentWindow.location.reload();
+    refreshPreview();
     setTimeout(() => setStatus(''), 4000);
   } catch (e) {
     setStatus('保存失败：' + e.message, 'err');
@@ -465,7 +539,29 @@ class Handler(BaseHTTPRequestHandler):
                 "application/json; charset=utf-8",
             )
 
+    def _handle_upload(self):
+        try:
+            n = int(self.headers.get('Content-Length', '0'))
+            if n <= 0 or n > 20 * 1024 * 1024:
+                return self._send(400, json.dumps({'ok': False, 'error': '文件为空或超过 20MB'}, ensure_ascii=False), 'application/json; charset=utf-8')
+            raw = self.rfile.read(n)
+            q = parse_qs(urlparse(self.path).query)
+            name = (q.get('name') or ['image.png'])[0]
+            name = re.sub(r'[^0-9A-Za-z._-]', '_', name)[-80:] or 'image.png'
+            if '.' not in name:
+                name += '.png'
+            media = ROOT / 'media'
+            media.mkdir(exist_ok=True)
+            target = media / name
+            target.write_bytes(raw)
+            rel = 'media/' + name
+            self._send(200, json.dumps({'ok': True, 'path': rel}, ensure_ascii=False), 'application/json; charset=utf-8')
+        except Exception as exc:
+            self._send(500, json.dumps({'ok': False, 'error': str(exc)}, ensure_ascii=False), 'application/json; charset=utf-8')
+
     def do_POST(self):
+        if self.path.startswith("/api/upload"):
+            return self._handle_upload()
         if self.path == "/api/publish":
             return self._handle_publish()
         if self.path != "/api/save":

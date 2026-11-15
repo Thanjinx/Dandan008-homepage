@@ -551,3 +551,89 @@ a.card:hover .more { text-decoration: underline; text-underline-offset: 3px; }
 /* 站名：也是链接，给点反馈 */
 .nav .brand { transition: color .2s, text-shadow .2s; }
 .nav .brand:hover { color: #fff; text-shadow: 0 0 16px rgba(88,166,255,.55); }
+
+/* ===== 随手记：书架 ===== */
+.shelf-wrap { margin-top: 46px; }
+.shelf-title {
+  font-size: clamp(20px, 2.4vw, 26px);
+  margin: 0 0 10px;
+  letter-spacing: .04em;
+}
+.shelf-title::before {
+  content: ""; display: inline-block; width: 22px; height: 1px;
+  margin-right: 12px; vertical-align: middle; background: var(--accent);
+  box-shadow: 0 0 10px rgba(88,166,255,.7);
+}
+.shelf-lede { color: var(--dim); margin: 0 0 26px; font-size: 14.5px; }
+
+.shelf { position: relative; padding-bottom: 20px; }
+.shelf-row {
+  list-style: none; margin: 0; padding: 0 4px;
+  display: flex; align-items: flex-end; gap: 7px; flex-wrap: wrap;
+  min-height: 212px;
+}
+.shelf-item { display: flex; align-items: flex-end; height: 212px; }
+
+/* 书脊 */
+.spine {
+  position: relative;
+  width: 44px; height: var(--h, 168px);
+  padding: 12px 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  border: 1px solid rgba(224,185,106,.42);
+  border-bottom: 0;
+  background: linear-gradient(180deg, rgba(224,185,106,.13), rgba(224,185,106,.03) 60%, rgba(0,0,0,0));
+  color: #d9c49a;
+  font: 12px/1.15 ui-monospace, Consolas, "Microsoft YaHei", monospace;
+  cursor: pointer;
+  transition: transform .22s ease, border-color .22s, background .22s, color .22s, box-shadow .22s;
+}
+.spine-t { writing-mode: vertical-rl; text-orientation: mixed; letter-spacing: .18em; }
+.spine-d { writing-mode: vertical-rl; font-size: 9.5px; opacity: .5; letter-spacing: .1em; }
+.spine:hover {
+  transform: translateY(-8px);
+  border-color: rgba(224,185,106,.85);
+  color: #fff;
+  box-shadow: 0 10px 26px -16px rgba(224,185,106,.8);
+}
+.spine.is-active {
+  transform: translateY(-10px);
+  border-color: rgba(224,185,106,1);
+  background: linear-gradient(180deg, rgba(224,185,106,.26), rgba(224,185,106,.05));
+  color: #fff;
+  box-shadow: 0 12px 30px -16px rgba(224,185,106,.9);
+}
+
+/* 图片板 */
+.plate {
+  height: 178px; width: 148px; padding: 6px; margin-bottom: 6px;
+  border: 1px solid rgba(224,185,106,.4);
+  background: #0b0e14;
+  cursor: pointer;
+  transition: transform .22s, border-color .22s, box-shadow .22s;
+}
+.plate img { height: 100%; width: 100%; display: block; object-fit: cover; }
+.plate:hover, .plate.is-active {
+  transform: translateY(-8px);
+  border-color: rgba(224,185,106,.95);
+  box-shadow: 0 12px 30px -16px rgba(224,185,106,.85);
+}
+
+/* 架板 */
+.shelf-board {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(224,185,106,.55) 12%, rgba(224,185,106,.75) 50%, rgba(224,185,106,.55) 88%, transparent);
+  box-shadow: 0 0 20px rgba(224,185,106,.35);
+}
+
+/* 阅读区 */
+.reader { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 30px; }
+.note-meta {
+  font: 10.5px/1 ui-monospace, Consolas, monospace;
+  letter-spacing: .16em; color: var(--dim); margin: 0 0 12px;
+}
+.note h2 { font-size: clamp(22px, 3vw, 30px); margin: 0 0 10px; }
+.note-sum { color: var(--accent-2); margin: 0 0 22px; }
+.note p { color: #c6d2e1; }
+.note figure { margin: 22px 0; }
+.note img { max-width: 100%; border: 1px solid var(--line); display: block; }
