@@ -1,0 +1,8 @@
+{
+  "name": "个人网站编辑",
+  "desc": "改文字、点保存、点发布：保存会自动重建 index.html，发布自动 git add/commit/push 推到 GitHub Pages。左边编辑右边实时预览。",
+  "tags": ["网站", "编辑", "发布"],
+  "icon": "✏️",
+  "entry": "编辑.bat",
+  "args": []
+}

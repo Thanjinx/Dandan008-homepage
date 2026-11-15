@@ -18,7 +18,13 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const rand = (a, b) => a + Math.random() * (b - a);
 
+  function sbWidth() {
+    const w = window.innerWidth - document.documentElement.clientWidth;
+    document.documentElement.style.setProperty('--sbw', (w > 0 ? w : 0) + 'px');
+  }
+
   function resize() {
+    sbWidth();
     DPR = Math.min(2, window.devicePixelRatio || 1);
     W = window.innerWidth;
     H = window.innerHeight;
@@ -49,8 +55,134 @@
     dragFrom: null,
     queue: [],
     task: null,
+    alpha: 1,
+    fly: null,
     nextThink: performance.now() + i * 170
   }));
+
+  /* ---------------- 右下角：时钟 + 抽屉开关 ---------------- */
+  const hudTime = document.getElementById('hudTime');
+  const hudBtn = document.getElementById('hudBtn');
+  const tower = document.getElementById('tower');
+  const gateEl = tower ? tower.querySelector('.gate') : null;
+
+  let auto = true;    // 光标是否在外面干活
+  let away = false;   // 光标被收进塔里了
+  let busy = false;   // 演出中，忽略连点
+
+  try { if (localStorage.getItem('fx-auto') === 'off') auto = false; } catch (e) {}
+
+  const pad2 = n => (n < 10 ? '0' + n : '' + n);
+  function tickClock() {
+    if (!hudTime) return;
+    const d = new Date();
+    hudTime.textContent = pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  function syncHud() { if (hudBtn) hudBtn.setAttribute('aria-pressed', auto ? 'true' : 'false'); }
+  function persist() { try { localStorage.setItem('fx-auto', auto ? 'on' : 'off'); } catch (e) {} }
+
+  function stopMoves() {
+    for (const c of cursors) {
+      c.queue.length = 0;
+      c.task = null;
+      c.dragging = false;
+      c.dragFrom = null;
+      c.press = 0;
+    }
+  }
+
+  // 门口坐标（塔是 fixed，换算成文档坐标给光标用）
+  function gatePoint() {
+    if (!gateEl) return { x: W - 52, y: scrollY + H / 2 };
+    const r = gateEl.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: scrollY + r.top + r.height * 0.52 };
+  }
+
+  // 光标被收进去：塔滑进来 → 开门 → 三只飞进门 → 关门 → 塔退场
+  function stowAway() {
+    if (busy || away || !tower) return;
+    busy = true;
+    auto = false; persist(); syncHud(); stopMoves();
+    frames.length = 0; floaters.length = 0;
+    tower.classList.add('in');
+    setTimeout(() => tower.classList.add('open'), 190);
+    setTimeout(() => {
+      const g = gatePoint();
+      cursors.forEach((c, i) => {
+        c.fly = {
+          x0: c.x, y0: c.y,
+          x: g.x + (i - 1) * 9, y: g.y + (i - 1) * 9,
+          a0: 1, a: 0, dur: 360, t0: performance.now() + i * 70
+        };
+      });
+    }, 330);
+    setTimeout(() => tower.classList.remove('open'), 720);
+    setTimeout(() => tower.classList.remove('in'), 960);
+    setTimeout(() => {
+      away = true; busy = false;
+      document.body.classList.add('away');
+      for (const c of cursors) { c.fly = null; c.alpha = 0; }
+    }, 1380);
+  }
+
+  // 放出来：塔回来 → 开门 → 三只从门里飞出去 → 关门 → 塔退场
+  function letOut() {
+    if (busy || !away || !tower) return;
+    busy = true;
+    tower.classList.add('in');
+    setTimeout(() => tower.classList.add('open'), 190);
+    setTimeout(() => {
+      const g = gatePoint();
+      cursors.forEach((c, i) => {
+        c.x = g.x + (i - 1) * 9;
+        c.y = g.y + (i - 1) * 9;
+        c.alpha = 0;
+        c.press = 0;
+        c.fly = {
+          x0: c.x, y0: c.y,
+          x: rand(120, W - 140), y: scrollY + rand(150, Math.max(200, H * 0.62)),
+          a0: 0, a: 1, dur: 400, t0: performance.now() + i * 60
+        };
+      });
+    }, 440);
+    setTimeout(() => tower.classList.remove('open'), 880);
+    setTimeout(() => tower.classList.remove('in'), 1120);
+    setTimeout(() => {
+      auto = true; away = false; busy = false;
+      document.body.classList.remove('away');
+      persist(); syncHud();
+      for (const c of cursors) c.nextThink = 0;
+    }, 1500);
+  }
+
+  function advanceFly(c, now) {
+    const f = c.fly;
+    const raw = (now - f.t0) / f.dur;
+    if (raw < 0) return;
+    const p = raw >= 1 ? 1 : raw;
+    const e = 1 - Math.pow(1 - p, 3);
+    c.x = f.x0 + (f.x - f.x0) * e;
+    c.y = f.y0 + (f.y - f.y0) * e;
+    c.alpha = f.a0 + (f.a - f.a0) * e;
+    if (p >= 1) c.fly = null;
+  }
+
+  if (hudBtn) {
+    hudBtn.addEventListener('click', () => {
+      if (busy) return;
+      if (auto) stowAway(); else letOut();
+    });
+  }
+  syncHud();
+  if (!auto) {
+    // 上次是关着的：直接当光标已经在塔里，不播一整套动画
+    away = true;
+    document.body.classList.add('away');
+    for (const c of cursors) c.alpha = 0;
+  }
 
   const frames = [];    // 已合上的框（文档坐标）
   const floaters = [];  // 框合上后飘出来的 token 提示
@@ -253,7 +385,9 @@
     const font = '600 11px ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif';
     ctx.font = font;
     const w = ctx.measureText(text).width + 14;
-    const bx = x + 15, by = y + 15, bh = 20, br = 6;
+    // 贴到右边缘时把标签翻到左边，别被裁掉
+    const bx = x > W - 170 ? x - 15 - w : x + 15;
+    const by = y + 15, bh = 20, br = 6;
     ctx.save();
     ctx.beginPath();
     if (ctx.roundRect) ctx.roundRect(bx, by, w, bh, br);
@@ -376,13 +510,26 @@
     for (const c of cursors) drawActive(c, scrollY);
     for (const f of floaters) drawFloater(f, now, scrollY);
 
+    // 光标被收进塔里：这一屏还没建好的块直接给，别让页面空着
+    if (!auto) {
+      for (const job of jobs) {
+        if (!job.done && boxOf(job.el).y0 - scrollY < H - 30) reveal(job);
+      }
+    }
+
     for (const c of cursors) {
-      step(c, now);
-      advance(c, now);
+      if (c.fly) advanceFly(c, now);
+      else if (auto) { step(c, now); advance(c, now); }
+    }
+
+    for (const c of cursors) {
+      if (c.alpha < 0.02) continue;
       const sy = c.y - scrollY;
       if (sy < -80 || sy > H + 80) continue;
+      ctx.globalAlpha = c.alpha;
       drawArrow(c.x, sy, c.color, c.press);
-      drawLabel(c.x, sy, c.name, c.color);
+      if (auto) drawLabel(c.x, sy, c.name, c.color);   // 收放过程中不挂名牌，别挡视野
+      ctx.globalAlpha = 1;
     }
 
     requestAnimationFrame(loop);

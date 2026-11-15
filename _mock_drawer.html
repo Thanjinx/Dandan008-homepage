@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Pleiades 抽屉 · 设计稿</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 18px 24px 24px; min-height: 100vh;
+    background:
+      radial-gradient(900px 500px at 15% -10%, #16202e 0%, transparent 60%),
+      radial-gradient(700px 400px at 90% 10%, #141b26 0%, transparent 55%), #0a0c10;
+    color: #f2f7ff;
+    font-family: "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  }
+  body::before {
+    content:""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+    background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size: 26px 26px;
+  }
+  .hd { display:flex; align-items:baseline; gap:12px; margin-bottom:2px; }
+  .hd h1 { font-size: 15px; margin: 0; letter-spacing: .02em; }
+  .hd h1 em { font-style: normal; color: #7ef0c8; }
+  .hd p { margin: 0; font-size: 12px; color: #8fa0b4; }
+
+  .row { display: flex; gap: 22px; margin-top: 14px; }
+  .tag { width: 76px; flex: none; font-size: 11.5px; line-height: 1.55; color: #8fa0b4; padding-top: 4px; }
+  .tag b { display: block; color: #f2f7ff; font-size: 13px; margin-bottom: 3px; letter-spacing: .02em; }
+
+  .cell { width: 330px; }
+  .stage {
+    position: relative; width: 330px; height: 372px; overflow: hidden;
+    border-radius: 12px; border: 1px solid rgba(255,255,255,.07);
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005));
+  }
+  .page { position: absolute; left: 18px; top: 28px; }
+  .page i { display: block; height: 8px; border-radius: 3px; margin-bottom: 8px; background: rgba(255,255,255,.07); }
+  .page i.big { height: 19px; width: 150px; background: rgba(255,255,255,.13); }
+  .page i.mid { height: 19px; width: 120px; background: rgba(126,240,200,.18); }
+  .page i.s { width: 112px; opacity: .75; }
+  .page i.xs { width: 88px; opacity: .55; }
+  .page .btn { margin-top: 14px; width: 58px; height: 18px; border-radius: 9px; background: rgba(91,157,255,.32); }
+
+  .cap { margin-top: 8px; font-size: 11.5px; line-height: 1.55; color: #93a2b5; min-height: 46px; }
+  .cap b { display: block; color: #f2f7ff; font-size: 12px; font-weight: 600; margin-bottom: 1px; }
+
+  /* ================= 塔 ================= */
+  .tower {
+    position: absolute; top: 0; bottom: 0; right: 0; width: 168px;
+    display: flex; flex-direction: column;
+    filter: drop-shadow(-18px 0 44px rgba(0,0,0,.65));
+    transition: transform .55s cubic-bezier(.25,.9,.2,1);
+  }
+  .tower.gone { transform: translateX(100%); }
+
+  /* 塔尖：细长针 + 两级退台 */
+  .spire { position: relative; height: 84px; flex: none; }
+  .spire div { position: absolute; left: 0; right: 0; }
+  .p1 { bottom: 0;    height: 26px; clip-path: polygon(0 100%, 9% 0, 91% 0, 100% 100%); }
+  .p2 { bottom: 26px; height: 30px; clip-path: polygon(10% 100%, 27% 0, 73% 0, 90% 100%); }
+  .p3 { bottom: 56px; height: 22px; clip-path: polygon(28% 100%, 45% 0, 55% 0, 72% 100%); }
+  .p4 { bottom: 78px; height: 8px;  clip-path: polygon(45% 100%, 47% 0, 53% 0, 55% 100%); }
+  .tip {
+    position: absolute; left: 50%; top: 3px; width: 5px; height: 5px; margin-left: -2.5px;
+    border-radius: 50%;
+  }
+
+  .shaft { position: relative; flex: 1; overflow: hidden; }
+  .shaft .rings span { position: absolute; left: 0; right: 0; height: 1px; }
+  .shaft .seams { position: absolute; inset: 0; opacity: .22;
+    background: repeating-linear-gradient(to right, rgba(0,0,0,.5) 0 1px, transparent 1px 46px); }
+  .shaft .rim { position: absolute; inset: 0; pointer-events: none; }
+
+  /* 七星（Pleiades） */
+  .stars { position: absolute; left: 50%; top: 22px; transform: translateX(-50%); width: 74px; height: 46px; }
+
+  /* 门 */
+  .gate {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: 84px; height: 126px; overflow: hidden;
+    border-radius: 42px 42px 0 0;
+  }
+  .gate .lite, .gate .leaf { position: absolute; inset: 0; border-radius: 42px 42px 0 0; }
+  .gate .leaf { transition: transform .4s ease, opacity .4s ease; }
+  .gate.open .leaf { transform: translateY(100%); opacity: 0; }
+  .gate.shut .lite { opacity: .0; }
+
+  .base { height: 46px; flex: none; position: relative; }
+  .base .plinth { position: absolute; inset: 0; }
+  .base .step { position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; height: 6px; width: 100%; }
+
+  .slit { position: absolute; top: 0; bottom: 0; right: 0; width: 4px; }
+
+  .cur { position: absolute; width: 13px; height: 18px; filter: drop-shadow(0 2px 8px rgba(0,0,0,.55)); }
+
+  /* ============== A 砂岩 ============== */
+  .A .tower { background: linear-gradient(90deg, rgba(0,0,0,.5), transparent 26%), linear-gradient(180deg, #241c14, #14100c 45%, #0c0a08); }
+  .A .p1 { background: linear-gradient(180deg, #3f3020, #221a12); }
+  .A .p2 { background: linear-gradient(180deg, #4c3a26, #2a2015); }
+  .A .p3 { background: linear-gradient(180deg, #5d462c, #32261a); }
+  .A .p4 { background: linear-gradient(180deg, #7a5c38, #3c2d1e); }
+  .A .tip { background: #f0d9a8; box-shadow: 0 0 12px 3px rgba(240,217,168,.55); }
+  .A .shaft .rings span { background: rgba(224,185,106,.16); }
+  .A .shaft .rim { box-shadow: inset 14px 0 22px -14px rgba(0,0,0,.9), inset -2px 0 0 rgba(224,185,106,.20); }
+  .A .base .plinth { background: linear-gradient(180deg, #1b1510, #090706); }
+  .A .base .step { background: rgba(224,185,106,.28); }
+  .A .gate .leaf { background: linear-gradient(180deg, #3a2c1c, #191410); box-shadow: inset 0 0 0 1px rgba(224,185,106,.32); }
+  .A .gate .lite { background: radial-gradient(115% 85% at 50% 100%, rgba(242,203,124,.60), rgba(242,203,124,.04) 72%); }
+  .A .slit { background: linear-gradient(180deg, rgba(240,217,168,.75), rgba(240,217,168,.12)); box-shadow: 0 0 16px rgba(240,200,120,.42); }
+
+  /* ============== B 曜石 ============== */
+  .B .tower { background: linear-gradient(90deg, rgba(0,0,0,.5), transparent 26%), linear-gradient(180deg, #15242b, #0a1216 45%, #070b0e); }
+  .B .p1 { background: linear-gradient(180deg, #1d333d, #0f1a20); }
+  .B .p2 { background: linear-gradient(180deg, #254352, #13232b); }
+  .B .p3 { background: linear-gradient(180deg, #2d5466, #172a33); }
+  .B .p4 { background: linear-gradient(180deg, #3b6c81, #1c343f); }
+  .B .tip { background: #7ef0c8; box-shadow: 0 0 12px 3px rgba(126,240,200,.55); }
+  .B .shaft .rings span { background: rgba(126,240,200,.18); }
+  .B .shaft .rim { box-shadow: inset 14px 0 22px -14px rgba(0,0,0,.9), inset -2px 0 0 rgba(126,240,200,.22); }
+  .B .base .plinth { background: linear-gradient(180deg, #0e1a1f, #060a0c); }
+  .B .base .step { background: rgba(126,240,200,.26); }
+  .B .gate .leaf { background: linear-gradient(180deg, #142630, #09131a); box-shadow: inset 0 0 0 1px rgba(126,240,200,.34); }
+  .B .gate .lite { background: radial-gradient(115% 85% at 50% 100%, rgba(126,240,200,.60), rgba(126,240,200,.04) 72%); }
+  .B .slit { background: linear-gradient(180deg, rgba(126,240,200,.75), rgba(126,240,200,.12)); box-shadow: 0 0 16px rgba(126,240,200,.42); }
+</style>
+</head>
+<body>
+<div class="hd">
+  <h1>侧边抽屉 · <em>Pleiades 监视塔</em></h1>
+  <p>三幕：塔滑进来开门 → 光标进塔 → 关门离场，只剩边缘一道塔影</p>
+</div>
+<div id="rows"></div>
+
+<script>
+const CUR = ['#ff8f3a', '#00adef', '#4d6bfe'];
+
+const arrow = (c, x, y, s = 1, o = 1) =>
+  `<svg class="cur" viewBox="0 0 14 19" style="left:${x}px;top:${y}px;opacity:${o};transform:scale(${s})">
+     <path d="M0 0 L0 17 L4.7 13.1 L7.7 19.7 L10.5 18.3 L7.6 11.9 L13.2 11.5 Z"
+       fill="${c}" stroke="rgba(6,10,16,.85)" stroke-width="1.1"/></svg>`;
+
+const ringRows = n => Array.from({ length: n }, (_, i) => `<span style="top:${10 + i * 40}px"></span>`).join('');
+
+const stars = tint => {
+  const pts = [[8,30],[22,14],[38,26],[52,8],[64,24],[46,40],[24,42]];
+  return `<svg class="stars" viewBox="0 0 74 46">
+    ${pts.map(([x,y],i) => `<circle cx="${x}" cy="${y}" r="1.5" fill="${tint}" opacity="${0.5 + (i%3)*0.18}"/>`).join('')}
+  </svg>`;
+};
+
+function tower(state) {
+  const gone = state === 'gone';
+  const shut = state === 'gone';
+  let inner = '';
+  if (state === 'pop') {
+    inner = CUR.map((c, i) => arrow(c, 16 + i * 26, 74, 0.95, 0.22)).join('');
+  } else if (state === 'swallow') {
+    inner = CUR.map((c, i) => arrow(c, 12 + i * 26, 86 + (i === 1 ? 12 : 0), 0.95)).join('');
+  }
+  return `
+  <div class="tower ${gone ? 'gone' : ''}">
+    <div class="spire">
+      <div class="p1"></div><div class="p2"></div><div class="p3"></div><div class="p4"></div>
+      <div class="tip"></div>
+    </div>
+    <div class="shaft">
+      <div class="rings">${ringRows(6)}</div>
+      <div class="seams"></div>
+      ${state === 'gone' ? '' : stars('currentColor')}
+      <div class="rim"></div>
+      <div class="gate ${shut ? 'shut' : 'open'}">
+        <div class="lite"></div>
+        <div class="leaf"></div>
+        ${inner}
+      </div>
+    </div>
+    <div class="base">
+      <div class="plinth"></div><div class="step"></div>
+    </div>
+  </div>
+  ${gone ? '<div class="slit"></div>' : ''}`;
+}
+
+function outside(state) {
+  // 弹出时：三只光标还在页面里，正往门口赶
+  if (state === 'pop') return CUR.map((c, i) => arrow(c, 150 - i * 20, 250 - i * 26, 1, 0.95)).join('');
+  if (state === 'swallow') return '';
+  return '';
+}
+
+const STAGES = [
+  { k: 'pop',     t: '① 点开关 → 塔滑进画面开门', d: '门扉降下、塔内亮起；三只光标掉头往门口飞' },
+  { k: 'swallow', t: '② 光标进门',                d: '门内三点光，就是网站里那三只的颜色' },
+  { k: 'gone',    t: '③ 关门离场',                d: '塔退回屏幕外，边缘只留一道塔影；不挡视野' }
+];
+
+const row = (v, label, desc) => `
+  <div class="row">
+    <div class="tag"><b>${label}</b>${desc}</div>
+    ${STAGES.map(s => `
+      <div class="cell">
+        <div class="stage ${v}">
+          <div class="page"><i class="big"></i><i class="mid"></i><i></i><i class="s"></i><i class="xs"></i><div class="btn"></div></div>
+          ${outside(s.k)}
+          ${tower(s.k)}
+        </div>
+        <div class="cap"><b>${s.t}</b>${s.d}</div>
+      </div>`).join('')}
+  </div>`;
+
+document.getElementById('rows').innerHTML =
+  row('A', 'A 砂岩', '沙漠里那座塔的本色，暖金线条') +
+  row('B', 'B 曜石', '冷曜石 + 青绿魔法光，更贴网站的配色');
+</script>
+</body>
+</html>

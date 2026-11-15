@@ -81,6 +81,15 @@
   <p>© 2026 Dandan008-XXC</p>
 </footer>
 
+<!-- 右下角：时钟 + 自动漫游开关 -->
+<div class="hud" id="hud">
+  <span class="hud-time" id="hudTime">--:--:--</span>
+  <button type="button" class="hud-btn" id="hudBtn" aria-pressed="true"
+          title="关掉后光标会飞到三个角上待着；再点一次继续">
+    <span class="led"></span><span class="hud-label">自动漫游</span>
+  </button>
+</div>
+
 <script>
 // 点一下就复制（Email 之类不想跳走的链接）
 document.addEventListener('click', function (e) {
@@ -111,6 +120,27 @@ function legacyCopy(text, done) {
   ta.remove();
 }
 </script>
+<!-- 侧边抽屉：Pleiades 监视塔。开 / 关自动漫游时用它把光标收进去 / 放出来 -->
+<div class="tower" id="tower" aria-hidden="true">
+  <div class="tower-spire"><i class="t1"></i><i class="t2"></i><i class="t3"></i><i class="t4"></i><b></b></div>
+  <div class="tower-shaft">
+    <div class="tower-rings"></div>
+    <div class="tower-seams"></div>
+    <svg class="tower-stars" viewBox="0 0 46 30" aria-hidden="true">
+      <circle cx="8" cy="22" r="1.1" opacity=".65"/>
+      <circle cx="15" cy="9"  r="1.1" opacity=".85"/>
+      <circle cx="24" cy="17" r="1.2"/>
+      <circle cx="33" cy="7"  r="1.1" opacity=".8"/>
+      <circle cx="39" cy="19" r="1.1" opacity=".6"/>
+      <circle cx="29" cy="25" r="1"   opacity=".5"/>
+      <circle cx="17" cy="26" r=".9"  opacity=".45"/>
+    </svg>
+    <div class="gate"><div class="lite"></div><div class="leaf"></div></div>
+  </div>
+  <div class="tower-base"></div>
+</div>
+<div class="tower-slit" aria-hidden="true"></div>
+
 <script src="fx.js"></script>
 </body>
 </html>
