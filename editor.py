@@ -141,7 +141,8 @@ const SPEC = [
   { key:'work', title:'作品', fields:[
       ['title','小标题']
   ], list:{ key:'cards', label:'卡片', add:'加一张卡片', fields:[
-      ['tag','标签'], ['title','卡片标题'], ['desc','描述','textarea']
+      ['tag','标签'], ['title','卡片标题'], ['desc','描述','textarea'],
+      ['page','关联详情页', 'pages']
   ]}},
   { key:'pages', title:'详情页', list:{ key:'items', label:'页面', add:'加一个页面', fields:[
       ['id','文件名（英文，别用空格）'], ['tag','标签'], ['title','标题'],
@@ -177,6 +178,36 @@ function field(label, value, onChange, multiline) {
   return wrap;
 }
 
+function pagePick(label, item, key) {
+  const wrap = document.createElement('label');
+  const cap = document.createElement('span');
+  cap.textContent = label;
+  wrap.appendChild(cap);
+  const sel = document.createElement('select');
+  const blank = document.createElement('option');
+  blank.value = ''; blank.textContent = '（不关联，卡片不可点）';
+  sel.appendChild(blank);
+  const items = (data.pages && data.pages.items) || [];
+  for (const pg of items) {
+    if (!pg.id) continue;
+    const o = document.createElement('option');
+    o.value = pg.id;
+    o.textContent = pg.id + (pg.title ? ' — ' + pg.title : '');
+    sel.appendChild(o);
+  }
+  sel.value = item[key] || '';
+  if (item[key] && !items.some(pg => pg.id === item[key])) {
+    const o = document.createElement('option');
+    o.value = item[key];
+    o.textContent = item[key] + '（还没建这个页面）';
+    sel.appendChild(o);
+    sel.value = item[key];
+  }
+  sel.addEventListener('change', () => { item[key] = sel.value; });
+  wrap.appendChild(sel);
+  return wrap;
+}
+
 function render() {
   form.innerHTML = '';
   for (const sec of SPEC) {
@@ -205,6 +236,10 @@ function render() {
           wrap.appendChild(field('段落 ' + (idx + 1), item, v => { list[idx] = v; }, true));
         } else {
           for (const [k, label, type] of sec.list.fields) {
+            if (type === 'pages') {
+              wrap.appendChild(pagePick(label, item, k));
+              continue;
+            }
             wrap.appendChild(field(label, item[k], v => {
               item[k] = (k === 'external') ? (v === 'true') : v;
             }, type === 'textarea'));
