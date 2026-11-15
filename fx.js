@@ -563,11 +563,12 @@
   const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
-  function flyTo(c, x, y, dur, alpha) {
+  function flyTo(c, x, y, dur, delay) {
+    // t0 必须是「现在」：写成 0 会让 raw 直接大于 1，光标瞬移到终点
     startFly(c, [{
       x0: c.x, y0: c.y, x: x, y: y,
-      a0: c.alpha, a: alpha == null ? 1 : alpha,
-      fade: [0, 1], dur: dur, t0: 0
+      a0: c.alpha, a: 1,
+      fade: [0, 1], dur: dur, t0: performance.now() + (delay || 0)
     }]);
   }
 
@@ -587,27 +588,36 @@
     const cx = [r.left - pad, r.right + pad, r.left - pad];
     const cy = [r.top - pad, r.top - pad, r.bottom + pad];
 
-    cursors.forEach((c, i) => flyTo(c, cx[i % 3], scrollY + cy[i % 3], 360));
+    cursors.forEach((c, i) => flyTo(c, cx[i % 3], scrollY + cy[i % 3], 380, i * 40));
     await wait(400);
     cursors.forEach((c) => { c.press = 1; });
 
     const ov = document.createElement('div');
-    ov.className = 'page-zoom card';
-    ov.style.left = r.left + 'px';
-    ov.style.top = r.top + 'px';
-    ov.style.width = r.width + 'px';
-    ov.style.height = r.height + 'px';
-    ov.innerHTML = link.innerHTML;
+    ov.className = 'page-zoom';
+    const inner = document.createElement('div');
+    inner.className = 'card zoom-card';
+    inner.innerHTML = link.innerHTML;
+    ov.appendChild(inner);
+
+    // 用 transform 缩放，不碰布局：从卡片所在位置放大到铺满
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const s0 = Math.max(r.width / vw, r.height / vh);
+    ov.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px) scale(' + s0 + ')';
     document.body.appendChild(ov);
 
-    cursors.forEach((c, i) => {          // 三只手把边往外拽
-      flyTo(c, [0, W, 0][i % 3], scrollY + [0, 0, H][i % 3], 520);
+    cursors.forEach((c, i) => {          // 各自往自己的角落拽
+      const tx = [0, W, 0][i % 3];
+      const ty = [0, 0, H][i % 3];
+      flyTo(c, tx, scrollY + ty, 520);
     });
 
     void ov.offsetWidth;
     requestAnimationFrame(() => ov.classList.add('grow'));
 
-    await wait(600);
+    await wait(560);
+    ov.style.transition = 'none';
+    ov.style.transform = 'translate(0px,0px) scale(1)';
+    await wait(90);
     location.href = href;
     return true;
   }
