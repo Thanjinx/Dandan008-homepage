@@ -405,21 +405,22 @@ body.away .tower-slit { opacity: 1; }
 .tower.in { transform: translateX(0); }
 .tower svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
-.tw-spire, .tw-shaft, .tw-rings path, .tw-base path {
-  fill: none;
-  stroke: rgba(224,185,106,.55);
+.tower svg path, .tower svg circle { vector-effect: non-scaling-stroke; }
+.tw-body {
+  fill: rgba(224,185,106,.045);
+  stroke: rgba(224,185,106,.62);
   stroke-width: 1;
-  vector-effect: non-scaling-stroke;
 }
-.tw-shaft { fill: rgba(224,185,106,.035); stroke: rgba(224,185,106,.42); }
-.tw-rings path { stroke: rgba(224,185,106,.16); }
-.tw-base path { stroke: rgba(224,185,106,.40); }
+.tw-dome { fill: rgba(224,185,106,.06); stroke: rgba(224,185,106,.55); stroke-width: 1; }
+.tw-spire-line { fill: rgba(224,185,106,.08); stroke: rgba(224,185,106,.62); stroke-width: 1; }
+.tw-wing { fill: none; stroke: rgba(224,185,106,.28); stroke-width: 1; }
+.tw-hair { stroke: rgba(224,185,106,.22); stroke-width: 1; fill: none; }
+.tw-dash { stroke: rgba(224,185,106,.30); stroke-width: 1; stroke-dasharray: 3 4; fill: none; }
 .tw-tip { fill: #f0d9a8; filter: drop-shadow(0 0 6px rgba(240,217,168,.9)); }
-.tw-stars circle { fill: #e0b96a; opacity: .75; }
 
 .gate .leaf {
-  fill: rgba(10,8,5,.92);
-  stroke: rgba(224,185,106,.55);
+  fill: rgba(8,7,4,.95);
+  stroke: rgba(224,185,106,.62);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   transition: transform .34s ease, opacity .34s ease;
@@ -432,7 +433,7 @@ body.away .tower-slit { opacity: 1; }
   opacity: 0;
   transition: opacity .3s ease;
 }
-.tower.open .gate .leaf { transform: translate(0, 88px); opacity: 0; }
+.tower.open .gate .leaf { transform: translate(0, 24px); opacity: 0; }
 .tower.open .gate .lite { opacity: 1; }
 
 /* 收起时贴在屏幕边缘的一道塔影 */

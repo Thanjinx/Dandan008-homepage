@@ -99,7 +99,7 @@
     if (!gateEl) return { x: W - 52, y: scrollY + H / 2 };
     const r = gateEl.getBoundingClientRect();
     // 门口地面：光标走到门槛高度再往里跨
-    return { x: r.left + r.width / 2, y: scrollY + r.bottom - 20 };
+    return { x: r.left + r.width / 2, y: scrollY + r.bottom - 9 };
   }
 
   // 光标被收进去：塔滑进来 → 开门 → 三只飞进门 → 关门 → 塔退场
@@ -120,7 +120,7 @@
         startFly(c, [
           { x0: c.x, y0: c.y, x: ax, y: my, a0: 1, a: 1, fade: [0, 1], dur: 380, t0: now + i * 40 },
           { x0: ax, y0: my, x: mx, y: my, a0: 1, a: 1, fade: [0, 1], dur: 200, t0: 0 },
-          { x0: mx, y0: my, x: mx + 6, y: my - 18, a0: 1, a: 0, fade: [0.35, 1], dur: 220, t0: 0 }
+          { x0: mx, y0: my, x: mx + 5, y: my - 12, a0: 1, a: 0, fade: [0.35, 1], dur: 220, t0: 0 }
         ]);
       });
     }, 420);
