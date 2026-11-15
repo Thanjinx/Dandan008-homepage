@@ -558,6 +558,69 @@
     requestAnimationFrame(loop);
   }
 
+
+  /* ---------------- 点卡片：三只光标抓住卡片，把它拉满全屏再跳转 ---------------- */
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+
+  function flyTo(c, x, y, dur, alpha) {
+    startFly(c, [{
+      x0: c.x, y0: c.y, x: x, y: y,
+      a0: c.alpha, a: alpha == null ? 1 : alpha,
+      fade: [0, 1], dur: dur, t0: 0
+    }]);
+  }
+
+  async function cardTransition(link) {
+    const href = link.getAttribute('href');
+    if (!href || href.charAt(0) === '#') return false;
+
+    if (away) {          // 关着的时候先把光标放出来
+      letOut();
+      await wait(1680);
+    }
+    auto = false;        // 演出期间先别领活
+    busy = true;
+
+    const r = link.getBoundingClientRect();
+    const pad = 6;
+    const cx = [r.left - pad, r.right + pad, r.left - pad];
+    const cy = [r.top - pad, r.top - pad, r.bottom + pad];
+
+    cursors.forEach((c, i) => flyTo(c, cx[i % 3], scrollY + cy[i % 3], 360));
+    await wait(400);
+    cursors.forEach((c) => { c.press = 1; });
+
+    const ov = document.createElement('div');
+    ov.className = 'page-zoom card';
+    ov.style.left = r.left + 'px';
+    ov.style.top = r.top + 'px';
+    ov.style.width = r.width + 'px';
+    ov.style.height = r.height + 'px';
+    ov.innerHTML = link.innerHTML;
+    document.body.appendChild(ov);
+
+    cursors.forEach((c, i) => {          // 三只手把边往外拽
+      flyTo(c, [0, W, 0][i % 3], scrollY + [0, 0, H][i % 3], 520);
+    });
+
+    void ov.offsetWidth;
+    requestAnimationFrame(() => ov.classList.add('grow'));
+
+    await wait(600);
+    location.href = href;
+    return true;
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = e.target.closest ? e.target.closest('a.card') : null;
+    if (!link) return;
+    if (REDUCED || busy) return;              // 不支持动画就普通跳转
+    e.preventDefault();
+    cardTransition(link).catch(() => { location.href = link.getAttribute('href'); });
+  });
+
   // 首帧：把已经在视口里的先分给光标
   requestAnimationFrame(loop);
 

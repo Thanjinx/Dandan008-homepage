@@ -490,3 +490,22 @@ a.card:hover .more { opacity: 1; }
 ::view-transition-new(root) { animation: vt-in .26s ease both; }
 @keyframes vt-out { to { opacity: 0; transform: translateY(-8px); } }
 @keyframes vt-in { from { opacity: 0; transform: translateY(10px); } }
+
+/* 点卡片：卡片刻拉成全屏 */
+.page-zoom {
+  position: fixed;
+  z-index: 38;
+  margin: 0;
+  overflow: hidden;
+  background: #0a0d12;
+  border: 1px solid rgba(88,166,255,.55);
+  box-shadow: 0 30px 80px rgba(0,0,0,.65);
+  transition: left .5s cubic-bezier(.22,.82,.28,1), top .5s cubic-bezier(.22,.82,.28,1),
+              width .5s cubic-bezier(.22,.82,.28,1), height .5s cubic-bezier(.22,.82,.28,1),
+              border-color .5s ease;
+}
+.page-zoom.grow {
+  left: 0 !important; top: 0 !important;
+  width: 100vw !important; height: 100vh !important;
+  border-color: rgba(88,166,255,.18);
+}

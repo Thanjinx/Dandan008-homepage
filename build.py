@@ -159,7 +159,7 @@ def render(data):
   <span class="hud-time" id="hudTime">--:--:--</span>
   <button type="button" class="hud-btn" id="hudBtn" aria-pressed="true"
           title="关掉后光标会飞到三个角上待着；再点一次继续">
-    <span class="led"></span><span class="hud-label">自动漫游</span>
+    <span class="led"></span><span class="hud-label">光标动画</span>
   </button>
 </div>
 
