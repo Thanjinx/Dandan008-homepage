@@ -186,24 +186,52 @@ function legacyCopy(text, done) {{
   ta.remove();
 }}
 </script>
-<!-- 侧边抽屉：Pleiades 监视塔。开 / 关自动漫游时用它把光标收进去 / 放出来 -->
+<!-- 侧边抽屉：Pleiades 监视塔（细线蓝图版）。开 / 关自动漫游时用它把光标收进去 / 放出来 -->
 <div class="tower" id="tower" aria-hidden="true">
-  <div class="tower-spire"><i class="t1"></i><i class="t2"></i><i class="t3"></i><i class="t4"></i><b></b></div>
-  <div class="tower-shaft">
-    <div class="tower-rings"></div>
-    <div class="tower-seams"></div>
-    <svg class="tower-stars" viewBox="0 0 46 30" aria-hidden="true">
-      <circle cx="8" cy="22" r="1.1" opacity=".65"/>
-      <circle cx="15" cy="9"  r="1.1" opacity=".85"/>
-      <circle cx="24" cy="17" r="1.2"/>
-      <circle cx="33" cy="7"  r="1.1" opacity=".8"/>
-      <circle cx="39" cy="19" r="1.1" opacity=".6"/>
-      <circle cx="29" cy="25" r="1"   opacity=".5"/>
-      <circle cx="17" cy="26" r=".9"  opacity=".45"/>
-    </svg>
-    <div class="gate"><div class="lite"></div><div class="leaf"></div></div>
-  </div>
-  <div class="tower-base"></div>
+  <svg viewBox="0 0 76 470" preserveAspectRatio="none">
+    <defs>
+      <radialGradient id="gateGlow" cx="50%" cy="100%" r="85%">
+        <stop offset="0%" stop-color="#f2cb7c" stop-opacity=".62"/>
+        <stop offset="60%" stop-color="#f2cb7c" stop-opacity=".16"/>
+        <stop offset="100%" stop-color="#f2cb7c" stop-opacity="0"/>
+      </radialGradient>
+      <clipPath id="shaftClip"><rect x="0.5" y="88.5" width="75" height="347"/></clipPath>
+    </defs>
+    <path class="tw-spire" d="M0 88 L6.8 88 L6.8 62 L20.5 62 L20.5 32 L34.2 32 L34.2 10 L36.2 10 L36.2 2 L38 0 L39.8 2 L39.8 10 L41.8 10 L41.8 32 L55.5 32 L55.5 62 L69.2 62 L69.2 88 Z"/>
+    <circle class="tw-tip" cx="38" cy="2" r="2.2"/>
+    <rect class="tw-shaft" x="0.5" y="88.5" width="75" height="347"/>
+    <g class="tw-rings">
+      <path d="M1 114 H75"/>
+      <path d="M1 140 H75"/>
+      <path d="M1 166 H75"/>
+      <path d="M1 192 H75"/>
+      <path d="M1 218 H75"/>
+      <path d="M1 244 H75"/>
+      <path d="M1 270 H75"/>
+      <path d="M1 296 H75"/>
+      <path d="M1 322 H75"/>
+      <path d="M1 348 H75"/>
+      <path d="M1 374 H75"/>
+      <path d="M1 400 H75"/>
+    </g>
+    <g class="tw-stars">
+      <circle cx="30" cy="116" r="1.3"/>
+      <circle cx="42" cy="110" r="1.3"/>
+      <circle cx="50" cy="124" r="1.3"/>
+      <circle cx="38" cy="132" r="1.3"/>
+      <circle cx="26" cy="128" r="1.3"/>
+      <circle cx="45" cy="138" r="1.3"/>
+      <circle cx="33" cy="142" r="1.3"/>
+    </g>
+    <g class="gate" clip-path="url(#shaftClip)">
+      <path class="lite" d="M16 436 V414 A22 22 0 0 1 60 414 V436 Z"/>
+      <path class="leaf" d="M16 436 V414 A22 22 0 0 1 60 414 V436 Z"/>
+    </g>
+    <g class="tw-base">
+      <path d="M0 436 H76"/>
+      <path d="M0 456 H76"/>
+    </g>
+  </svg>
 </div>
 <div class="tower-slit" aria-hidden="true"></div>
 

@@ -64,7 +64,7 @@
   const hudTime = document.getElementById('hudTime');
   const hudBtn = document.getElementById('hudBtn');
   const tower = document.getElementById('tower');
-  const gateEl = tower ? tower.querySelector('.gate') : null;
+  const gateEl = tower ? tower.querySelector('.gate .lite') : null;   // 量门洞本体，别量会滑走的门扇
 
   let auto = true;    // 光标是否在外面干活
   let away = false;   // 光标被收进塔里了
@@ -98,7 +98,8 @@
   function gatePoint() {
     if (!gateEl) return { x: W - 52, y: scrollY + H / 2 };
     const r = gateEl.getBoundingClientRect();
-    return { x: r.left + r.width / 2, y: scrollY + r.top + r.height * 0.52 };
+    // 门口地面：光标走到门槛高度再往里跨
+    return { x: r.left + r.width / 2, y: scrollY + r.bottom - 20 };
   }
 
   // 光标被收进去：塔滑进来 → 开门 → 三只飞进门 → 关门 → 塔退场
@@ -113,23 +114,23 @@
       const g = gatePoint();
       const now = performance.now();
       cursors.forEach((c, i) => {
-        const mx = g.x - 6 + (i - 1) * 7;
-        const my = g.y - 12 + (i - 1) * 8;
+        const ax = g.x - 78 + (i - 1) * 14;   // 先在门外排好
+        const mx = g.x - 8 + (i - 1) * 6;     // 门槛
+        const my = g.y + (i - 1) * 5;
         startFly(c, [
-          // ① 看得清地飞到门口
-          { x0: c.x, y0: c.y, x: mx, y: my, a0: 1, a: 1, fade: [0, 1], dur: 360, t0: now + 420 + i * 70 },
-          // ② 跨进门里再消失
-          { x0: mx, y0: my, x: mx + 12, y: my + 14, a0: 1, a: 0, fade: [0.3, 1], dur: 200, t0: 0 }
+          { x0: c.x, y0: c.y, x: ax, y: my, a0: 1, a: 1, fade: [0, 1], dur: 380, t0: now + i * 40 },
+          { x0: ax, y0: my, x: mx, y: my, a0: 1, a: 1, fade: [0, 1], dur: 200, t0: 0 },
+          { x0: mx, y0: my, x: mx + 6, y: my - 18, a0: 1, a: 0, fade: [0.35, 1], dur: 220, t0: 0 }
         ]);
       });
     }, 420);
-    setTimeout(() => tower.classList.remove('open'), 1140);
-    setTimeout(() => tower.classList.remove('in'), 1360);
+    setTimeout(() => tower.classList.remove('open'), 1300);
+    setTimeout(() => tower.classList.remove('in'), 1520);
     setTimeout(() => {
       away = true; busy = false;
       document.body.classList.add('away');
       for (const c of cursors) { c.fly = null; c.alpha = 0; }
-    }, 1580);
+    }, 1740);
   }
 
   // 放出来：塔回来 → 开门 → 三只从门里飞出去 → 关门 → 塔退场
@@ -142,26 +143,29 @@
       const g = gatePoint();
       const now = performance.now();
       cursors.forEach((c, i) => {
-        const sx = g.x - 4 + (i - 1) * 7;
-        const sy = g.y - 8 + (i - 1) * 8;
+        const sx = g.x - 6 + (i - 1) * 6;
+        const sy = g.y - 16 + (i - 1) * 5;
+        const ox = g.x - 78 + (i - 1) * 14;
         c.x = sx; c.y = sy; c.alpha = 0; c.press = 0;
         startFly(c, [
-          // ① 在门口先亮起来
-          { x0: sx, y0: sy, x: sx, y: sy, a0: 0, a: 1, fade: [0, 1], dur: 120, t0: now + 400 + i * 70 },
-          // ② 再飞回页面里
-          { x0: sx, y0: sy, x: rand(140, W - 180), y: scrollY + rand(160, Math.max(220, H * 0.62)),
-            a0: 1, a: 1, fade: [0, 1], dur: 400, t0: 0 }
+          // ① 门里亮起来
+          { x0: sx, y0: sy, x: sx, y: sy, a0: 0, a: 1, fade: [0, 1], dur: 150, t0: now + i * 50 },
+          // ② 走出门槛
+          { x0: sx, y0: sy, x: ox, y: g.y + (i - 1) * 5, a0: 1, a: 1, fade: [0, 1], dur: 260, t0: 0 },
+          // ③ 飞回页面
+          { x0: ox, y0: g.y + (i - 1) * 5, x: rand(140, W - 200), y: scrollY + rand(150, Math.max(220, H * 0.6)),
+            a0: 1, a: 1, fade: [0, 1], dur: 420, t0: 0 }
         ]);
       });
     }, 400);
-    setTimeout(() => tower.classList.remove('open'), 1100);
-    setTimeout(() => tower.classList.remove('in'), 1320);
+    setTimeout(() => tower.classList.remove('open'), 1180);
+    setTimeout(() => tower.classList.remove('in'), 1400);
     setTimeout(() => {
       auto = true; away = false; busy = false;
       document.body.classList.remove('away');
       persist(); syncHud();
       for (const c of cursors) c.nextThink = 0;
-    }, 1520);
+    }, 1620);
   }
 
   function startFly(c, segs) {
@@ -400,21 +404,22 @@
   }
 
   function drawLabel(x, y, text, color) {
-    const font = '600 11px ui-sans-serif, system-ui, "Microsoft YaHei", sans-serif';
-    ctx.font = font;
+    ctx.font = '600 10.5px ui-monospace, Consolas, "Microsoft YaHei", monospace';
     const w = ctx.measureText(text).width + 14;
     // 贴到右边缘时把标签翻到左边，别被裁掉
     const bx = x > W - 170 ? x - 15 - w : x + 15;
-    const by = y + 15, bh = 20, br = 6;
+    const by = y + 15, bh = 18;
     ctx.save();
     ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(bx, by, w, bh, br);
-    else ctx.rect(bx, by, w, bh);
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.92;
+    ctx.rect(bx + 0.5, by + 0.5, w, bh);
+    ctx.fillStyle = 'rgba(6,10,16,.90)';
     ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.85;
+    ctx.stroke();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = 'rgba(8,12,18,.92)';
+    ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     ctx.fillText(text, bx + 7, by + bh / 2 + 0.5);
     ctx.restore();
