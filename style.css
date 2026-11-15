@@ -407,25 +407,25 @@ body.away .tower-slit { opacity: 1; }
 
 .tower svg path, .tower svg circle { vector-effect: non-scaling-stroke; }
 .tw-body {
-  fill: rgba(224,185,106,.045);
+  fill: rgba(9,11,15,.96);
   stroke: rgba(224,185,106,.62);
   stroke-width: 1;
 }
-.tw-dome { fill: rgba(224,185,106,.06); stroke: rgba(224,185,106,.55); stroke-width: 1; }
-.tw-spire-line { fill: rgba(224,185,106,.08); stroke: rgba(224,185,106,.62); stroke-width: 1; }
-.tw-wing { fill: none; stroke: rgba(224,185,106,.28); stroke-width: 1; }
+.tw-dome { fill: rgba(9,11,15,.96); stroke: rgba(224,185,106,.55); stroke-width: 1; }
+.tw-spire-line { fill: rgba(9,11,15,.96); stroke: rgba(224,185,106,.62); stroke-width: 1; }
+.tw-wing { fill: none; stroke: rgba(224,185,106,.20); stroke-width: 1; }
 .tw-hair { stroke: rgba(224,185,106,.22); stroke-width: 1; fill: none; }
 .tw-dash { stroke: rgba(224,185,106,.30); stroke-width: 1; stroke-dasharray: 3 4; fill: none; }
 .tw-minis { transition: opacity .3s ease; }
 .tower:not(.in) .tw-minis { opacity: 0; }
 .tw-mini { animation: twFloat 7.5s ease-in-out infinite; }
 .tw-mini path {
-  fill: rgba(224,185,106,.03);
+  fill: rgba(9,11,15,.96);
   stroke: rgba(224,185,106,.50);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
-.tw-mini-dome { fill: rgba(224,185,106,.10); stroke: rgba(224,185,106,.58); }
+.tw-mini-dome { fill: rgba(9,11,15,.96); stroke: rgba(224,185,106,.58); }
 .tw-mini .tw-mini-hair { stroke: rgba(224,185,106,.20); fill: none; }
 @keyframes twFloat {
   0%, 100% { transform: translateY(0); }
