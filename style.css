@@ -309,9 +309,9 @@ body.away .tower-slit { opacity: 1; }
   right: var(--sbw, 0px);
   top: 50%;
   z-index: 55;
-  width: 104px;
-  height: min(58vh, 430px);
-  margin-top: calc(min(58vh, 430px) / -2);
+  width: 76px;
+  height: min(62vh, 470px);
+  margin-top: calc(min(62vh, 470px) / -2);
   display: flex;
   flex-direction: column;
   pointer-events: none;
@@ -352,7 +352,7 @@ body.away .tower-slit { opacity: 1; }
 }
 .tower-rings {
   position: absolute; inset: 0;
-  background: repeating-linear-gradient(to bottom, rgba(224,185,106,.22) 0 1px, transparent 1px 30px);
+  background: repeating-linear-gradient(to bottom, rgba(224,185,106,.22) 0 1px, transparent 1px 26px);
 }
 .tower-seams {
   position: absolute; inset: 0; opacity: .18;
@@ -365,8 +365,8 @@ body.away .tower-slit { opacity: 1; }
 
 .gate {
   position: absolute; left: 50%; bottom: 0;
-  width: 58px; height: 96px; margin-left: -29px;
-  border-radius: 29px 29px 0 0;
+  width: 44px; height: 86px; margin-left: -22px;
+  border-radius: 22px 22px 0 0;
   overflow: hidden;
 }
 .gate .lite {
@@ -396,7 +396,7 @@ body.away .tower-slit { opacity: 1; }
 /* 收起时贴在屏幕边缘的一道塔影 */
 .tower-slit {
   position: fixed; right: var(--sbw, 0px); top: 50%; z-index: 54;
-  width: 3px; height: min(58vh, 430px); margin-top: calc(min(58vh, 430px) / -2);
+  width: 3px; height: min(62vh, 470px); margin-top: calc(min(62vh, 470px) / -2);
   pointer-events: none;
   opacity: 0; transition: opacity .3s ease;
   background: linear-gradient(180deg, rgba(240,217,168,.55), rgba(240,217,168,.10));

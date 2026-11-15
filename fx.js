@@ -70,7 +70,7 @@
   let away = false;   // 光标被收进塔里了
   let busy = false;   // 演出中，忽略连点
 
-  try { if (localStorage.getItem('fx-auto') === 'off') auto = false; } catch (e) {}
+  // 默认就是自动漫游：页面要靠光标一块块搭出来，所以刷新后总是从「在外面」开始
 
   const pad2 = n => (n < 10 ? '0' + n : '' + n);
   function tickClock() {
@@ -111,21 +111,25 @@
     setTimeout(() => tower.classList.add('open'), 190);
     setTimeout(() => {
       const g = gatePoint();
+      const now = performance.now();
       cursors.forEach((c, i) => {
-        c.fly = {
-          x0: c.x, y0: c.y,
-          x: g.x + (i - 1) * 9, y: g.y + (i - 1) * 9,
-          a0: 1, a: 0, dur: 360, t0: performance.now() + i * 70
-        };
+        const mx = g.x - 6 + (i - 1) * 7;
+        const my = g.y - 12 + (i - 1) * 8;
+        startFly(c, [
+          // ① 看得清地飞到门口
+          { x0: c.x, y0: c.y, x: mx, y: my, a0: 1, a: 1, fade: [0, 1], dur: 360, t0: now + 420 + i * 70 },
+          // ② 跨进门里再消失
+          { x0: mx, y0: my, x: mx + 12, y: my + 14, a0: 1, a: 0, fade: [0.3, 1], dur: 200, t0: 0 }
+        ]);
       });
-    }, 330);
-    setTimeout(() => tower.classList.remove('open'), 720);
-    setTimeout(() => tower.classList.remove('in'), 960);
+    }, 420);
+    setTimeout(() => tower.classList.remove('open'), 1140);
+    setTimeout(() => tower.classList.remove('in'), 1360);
     setTimeout(() => {
       away = true; busy = false;
       document.body.classList.add('away');
       for (const c of cursors) { c.fly = null; c.alpha = 0; }
-    }, 1380);
+    }, 1580);
   }
 
   // 放出来：塔回来 → 开门 → 三只从门里飞出去 → 关门 → 塔退场
@@ -136,38 +140,57 @@
     setTimeout(() => tower.classList.add('open'), 190);
     setTimeout(() => {
       const g = gatePoint();
+      const now = performance.now();
       cursors.forEach((c, i) => {
-        c.x = g.x + (i - 1) * 9;
-        c.y = g.y + (i - 1) * 9;
-        c.alpha = 0;
-        c.press = 0;
-        c.fly = {
-          x0: c.x, y0: c.y,
-          x: rand(120, W - 140), y: scrollY + rand(150, Math.max(200, H * 0.62)),
-          a0: 0, a: 1, dur: 400, t0: performance.now() + i * 60
-        };
+        const sx = g.x - 4 + (i - 1) * 7;
+        const sy = g.y - 8 + (i - 1) * 8;
+        c.x = sx; c.y = sy; c.alpha = 0; c.press = 0;
+        startFly(c, [
+          // ① 在门口先亮起来
+          { x0: sx, y0: sy, x: sx, y: sy, a0: 0, a: 1, fade: [0, 1], dur: 120, t0: now + 400 + i * 70 },
+          // ② 再飞回页面里
+          { x0: sx, y0: sy, x: rand(140, W - 180), y: scrollY + rand(160, Math.max(220, H * 0.62)),
+            a0: 1, a: 1, fade: [0, 1], dur: 400, t0: 0 }
+        ]);
       });
-    }, 440);
-    setTimeout(() => tower.classList.remove('open'), 880);
-    setTimeout(() => tower.classList.remove('in'), 1120);
+    }, 400);
+    setTimeout(() => tower.classList.remove('open'), 1100);
+    setTimeout(() => tower.classList.remove('in'), 1320);
     setTimeout(() => {
       auto = true; away = false; busy = false;
       document.body.classList.remove('away');
       persist(); syncHud();
       for (const c of cursors) c.nextThink = 0;
-    }, 1500);
+    }, 1520);
   }
 
+  function startFly(c, segs) {
+    c.fly = segs.shift();
+    c.flyRest = segs;
+  }
+
+  // 分段飞行：每段可以只在 [p0,p1] 区间里改透明度，所以「进门」时可以先看得清、到门口才消失
   function advanceFly(c, now) {
     const f = c.fly;
+    if (!f) return;
     const raw = (now - f.t0) / f.dur;
     if (raw < 0) return;
     const p = raw >= 1 ? 1 : raw;
     const e = 1 - Math.pow(1 - p, 3);
     c.x = f.x0 + (f.x - f.x0) * e;
     c.y = f.y0 + (f.y - f.y0) * e;
-    c.alpha = f.a0 + (f.a - f.a0) * e;
-    if (p >= 1) c.fly = null;
+    const w = f.fade || [0, 1];
+    const q = p <= w[0] ? 0 : p >= w[1] ? 1 : (p - w[0]) / (w[1] - w[0]);
+    c.alpha = f.a0 + (f.a - f.a0) * q;
+    if (p >= 1) {
+      c.fly = null;
+      if (c.flyRest && c.flyRest.length) {
+        const nxt = c.flyRest.shift();
+        nxt.x0 = c.x; nxt.y0 = c.y; nxt.a0 = c.alpha;
+        nxt.t0 = now;
+        c.fly = nxt;
+      }
+    }
   }
 
   if (hudBtn) {
@@ -177,12 +200,7 @@
     });
   }
   syncHud();
-  if (!auto) {
-    // 上次是关着的：直接当光标已经在塔里，不播一整套动画
-    away = true;
-    document.body.classList.add('away');
-    for (const c of cursors) c.alpha = 0;
-  }
+
 
   const frames = [];    // 已合上的框（文档坐标）
   const floaters = [];  // 框合上后飘出来的 token 提示
