@@ -516,3 +516,38 @@ a.card:hover .more { opacity: 1; }
 }
 .page-zoom > .card::before,
 .page-zoom > .card::after { display: none; }
+
+/* ===== 可点击元素：统一的可点感 ===== */
+a, button { cursor: pointer; }
+a:focus-visible, button:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
+
+/* 导航 */
+.nav a { padding: 6px 0; }
+.nav a:hover { text-shadow: 0 0 14px rgba(88,166,255,.5); }
+
+/* 按钮：悬浮抬一点，按下回弹 */
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(1px); }
+.btn.primary:hover { box-shadow: 0 0 0 1px rgba(88,166,255,.55), 0 10px 30px -14px rgba(88,166,255,.6); }
+
+/* 链接行：整行可点 —— 左侧竖条 + 背景扫过 */
+.links li { position: relative; }
+.links li::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--accent); transform: scaleY(0); transition: transform .22s;
+}
+.links li:hover::before, .links li:focus-within::before { transform: scaleY(1); }
+.links a, .links button { transition: padding .25s, color .25s, background .22s; }
+.links a:hover, .links button:hover { background: linear-gradient(90deg, rgba(88,166,255,.10), transparent 65%); }
+
+/* 卡片：抬高阴影（不改 transform，避开 piece-pop 动画） */
+a.card { transition: border-color .25s, box-shadow .25s, background .25s; }
+a.card:hover { box-shadow: 0 16px 44px -26px rgba(88,166,255,.9), inset 0 0 0 1px rgba(88,166,255,.14); }
+a.card:hover .more { text-decoration: underline; text-underline-offset: 3px; }
+
+/* HUD 开关 */
+.hud-btn:hover { background: rgba(255,255,255,.045); }
+
+/* 站名：也是链接，给点反馈 */
+.nav .brand { transition: color .2s, text-shadow .2s; }
+.nav .brand:hover { color: #fff; text-shadow: 0 0 16px rgba(88,166,255,.55); }
