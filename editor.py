@@ -18,7 +18,15 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import importlib
+
 import build as builder
+
+
+def rebuild():
+    """每次重建前重载 build.py：改了模板不用重启服务。"""
+    importlib.reload(builder)
+    return builder.build()
 
 ROOT = Path(__file__).resolve().parent
 CONTENT = ROOT / "content.json"
@@ -432,7 +440,7 @@ class Handler(BaseHTTPRequestHandler):
                 encoding="utf-8",
                 newline="\n",
             )
-            builder.build()
+            rebuild()
             self._send(200, json.dumps({"ok": True}), "application/json; charset=utf-8")
         except Exception as exc:  # 出错了要能看见，而不是白屏
             self._send(
@@ -445,7 +453,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     # 先保证 index.html 是最新的
     try:
-        builder.build()
+        rebuild()
     except Exception as exc:
         print("警告：初始构建失败：", exc)
 
