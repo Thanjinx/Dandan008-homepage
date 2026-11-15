@@ -88,6 +88,11 @@ PAGE = """<!DOCTYPE html>
   section > h2 { display:none; }
   label { display:block; margin-bottom:10px; }
   label > span { display:block; font-size:12px; color:var(--dim); margin-bottom:4px; }
+  .pickbar { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+  .pickbar select { flex:1; font:inherit; color:var(--txt); background:#0c1117; border:1px solid var(--line); border-radius:7px; padding:8px 10px; }
+  .pickbar select:focus { outline:none; border-color:var(--accent); }
+  .pickbar .count { color:var(--dim); font-size:12px; white-space:nowrap; }
+  .empty { color:var(--dim); font-size:13px; margin:0 0 10px; }
   input, textarea {
     width:100%; font:inherit; color:var(--txt); background:#0c1117;
     border:1px solid var(--line); border-radius:7px; padding:8px 10px;
@@ -165,7 +170,7 @@ const SPEC = [
   { key:'notes', title:'随手记', fields:[
       ['title','书架小标题'],
       ['lede','一句话介绍','textarea']
-  ], list:{ key:'items', label:'书架上的书', add:'加一本书', fields:[
+  ], list:{ key:'items', label:'书架上的书', add:'加一本书', pick:true, fields:[
       ['id','编号（英文，随便写）'], ['title','书名 / 标题'],
       ['kind','类型（text 文字 / image 图片）'],
       ['date','日期（如 2026-11）'], ['summary','封面一句话','textarea'],
@@ -280,6 +285,72 @@ function imageField(label, item, key) {
   return wrap;
 }
 
+const pickState = {};
+
+function renderPick(box, sec, obj) {
+  const list = obj[sec.list.key] || (obj[sec.list.key] = []);
+  const key = sec.key;
+  if (pickState[key] == null || pickState[key] >= list.length) pickState[key] = 0;
+  const bar = document.createElement('div');
+  bar.className = 'pickbar';
+
+  if (!list.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty';
+    empty.textContent = '还没有，点右边加一本。';
+    bar.appendChild(empty);
+  } else {
+    const sel = document.createElement('select');
+    list.forEach(function (it, i) {
+      const o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = (i + 1) + '. ' + (it.title || it.id || '未命名');
+      sel.appendChild(o);
+    });
+    sel.value = String(pickState[key]);
+    sel.onchange = function () { pickState[key] = parseInt(sel.value, 10) || 0; render(); };
+    bar.appendChild(sel);
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = '共 ' + list.length + ' 本';
+    bar.appendChild(count);
+    const del = document.createElement('button');
+    del.className = 'ghost';
+    del.textContent = '删这本';
+    del.onclick = function () {
+      if (!confirm('确定删掉「' + (list[pickState[key]].title || '这一本') + '」？')) return;
+      list.splice(pickState[key], 1);
+      if (pickState[key] >= list.length) pickState[key] = Math.max(0, list.length - 1);
+      render();
+    };
+    bar.appendChild(del);
+  }
+
+  const add = document.createElement('button');
+  add.className = 'ghost';
+  add.textContent = '+ ' + sec.list.add;
+  add.onclick = function () {
+    const fresh = {};
+    for (const f of sec.list.fields) fresh[f[0]] = '';
+    list.push(fresh);
+    pickState[key] = list.length - 1;
+    render();
+  };
+  bar.appendChild(add);
+  box.appendChild(bar);
+
+  if (!list.length) return;
+  const item = list[pickState[key]];
+  const wrap = document.createElement('div');
+  wrap.className = 'item';
+  for (const f of sec.list.fields) {
+    const k = f[0], label = f[1], type = f[2];
+    if (type === 'image') { wrap.appendChild(imageField(label, item, k)); continue; }
+    wrap.appendChild(field(label, item[k], function (v) { item[k] = v; }, type === 'textarea'));
+  }
+  box.appendChild(wrap);
+}
+
 function render() {
   form.innerHTML = '';
   for (const sec of SPEC) {
@@ -292,6 +363,12 @@ function render() {
 
     for (const [k, label, type] of (sec.fields || [])) {
       box.appendChild(field(label, obj[k], v => { obj[k] = v; }, type === 'textarea'));
+    }
+
+    if (sec.list && sec.list.pick) {
+      renderPick(box, sec, obj);
+      form.appendChild(box);
+      continue;
     }
 
     if (sec.list) {
