@@ -227,6 +227,30 @@ function legacyCopy(text, done) {{
       <path class="tw-hair" d="M8 456 L68 456"/>
       <path class="tw-dash" d="M10 464 L34 464 M42 464 L66 464"/>
       <path class="tw-dash" d="M14 470 L30 470 M46 470 L62 470"/>
+
+    <g class="tw-minis">
+      <g transform="translate(-32 84) scale(0.55)">
+        <g class="tw-mini" style="animation-delay:.0s">
+        <path d="M10 2 L9 26 L11 26 Z"/><path d="M6 32 L6 26 A4 4 0 0 1 14 26 L14 32"/>
+        <path d="M7 32 L6.4 66 L13.6 66 L13 32 Z"/><path d="M5 66 L15 66"/>
+        <path class="tw-mini-door" d="M9 66 L9 62.5 A1 1 0 0 1 11 62.5 L11 66"/>
+        </g>
+      </g>
+      <g transform="translate(-50 246) scale(0.42)">
+        <g class="tw-mini" style="animation-delay:-2.4s">
+        <path d="M10 2 L9 26 L11 26 Z"/><path d="M6 32 L6 26 A4 4 0 0 1 14 26 L14 32"/>
+        <path d="M7 32 L6.4 66 L13.6 66 L13 32 Z"/><path d="M5 66 L15 66"/>
+        <path class="tw-mini-door" d="M9 66 L9 62.5 A1 1 0 0 1 11 62.5 L11 66"/>
+        </g>
+      </g>
+      <g transform="translate(-24 358) scale(0.34)">
+        <g class="tw-mini" style="animation-delay:-4.7s">
+        <path d="M10 2 L9 26 L11 26 Z"/><path d="M6 32 L6 26 A4 4 0 0 1 14 26 L14 32"/>
+        <path d="M7 32 L6.4 66 L13.6 66 L13 32 Z"/><path d="M5 66 L15 66"/>
+        <path class="tw-mini-door" d="M9 66 L9 62.5 A1 1 0 0 1 11 62.5 L11 66"/>
+        </g>
+      </g>
+    </g>
     <g class="gate" clip-path="url(#shaftClip)">
       <path class="lite" d="M31 449 L31 434 A7 7 0 0 1 45 434 L45 449 Z"/>
       <path class="leaf" d="M31 449 L31 434 A7 7 0 0 1 45 434 L45 449 Z"/>

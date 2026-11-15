@@ -416,6 +416,20 @@ body.away .tower-slit { opacity: 1; }
 .tw-wing { fill: none; stroke: rgba(224,185,106,.28); stroke-width: 1; }
 .tw-hair { stroke: rgba(224,185,106,.22); stroke-width: 1; fill: none; }
 .tw-dash { stroke: rgba(224,185,106,.30); stroke-width: 1; stroke-dasharray: 3 4; fill: none; }
+.tw-minis { transition: opacity .3s ease; }
+.tower:not(.in) .tw-minis { opacity: 0; }
+.tw-mini { animation: twFloat 7.5s ease-in-out infinite; }
+.tw-mini path {
+  fill: none;
+  stroke: rgba(224,185,106,.52);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.tw-mini path.tw-mini-door { stroke: rgba(240,217,168,.55); }
+@keyframes twFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
 .tw-tip { fill: #f0d9a8; filter: drop-shadow(0 0 6px rgba(240,217,168,.9)); }
 
 .gate .leaf {
