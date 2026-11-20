@@ -613,9 +613,23 @@ a.card:hover .more { text-decoration: underline; text-underline-offset: 3px; }
   transition: transform .22s, border-color .22s, box-shadow .22s;
 }
 .plate img { height: 100%; width: 100%; display: block; object-fit: cover; }
-.is-plate { flex-direction: column; justify-content: flex-end; gap: 7px; }
+.is-plate { flex-direction: column; justify-content: flex-end; gap: 0; }
+.is-plate .plate { margin-bottom: 0; border-bottom-color: rgba(224,185,106,.65); }
+/* 图片板底座：上窄下宽的台座，压在架板上 */
+.plate-base {
+  width: 162px; height: 10px; margin-top: -1px;
+  background:
+    linear-gradient(180deg, rgba(224,185,106,.22), rgba(224,185,106,.05) 70%, rgba(0,0,0,0)),
+    #0b0e14;
+  border-top: 1px solid rgba(224,185,106,.6);
+  border-left: 1px solid rgba(224,185,106,.28);
+  border-right: 1px solid rgba(224,185,106,.28);
+  clip-path: polygon(7% 0, 93% 0, 100% 100%, 0 100%);
+  transition: border-color .22s;
+}
+.is-plate:has(.plate.is-active) .plate-base { border-top-color: #e0b96a; }
 .plate-cap {
-  max-width: 150px; font: 11px/1.3 ui-monospace, Consolas, "Microsoft YaHei", monospace;
+  margin-top: 6px; max-width: 150px; font: 11px/1.3 ui-monospace, Consolas, "Microsoft YaHei", monospace;
   color: var(--dim); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   transition: color .2s;
 }
