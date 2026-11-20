@@ -1,1 +1,0 @@
-绑定自定义域名 dandan008.top（CNAME 文件）
