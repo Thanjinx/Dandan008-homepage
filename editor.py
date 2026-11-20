@@ -139,6 +139,7 @@ PAGE = """<!DOCTYPE html>
   <div id="preview-wrap"><iframe id="preview" src="/files/index.html"></iframe></div>
 </main>
 
+<div id="logbox"><b id="logtitle">发布日志</b><button id="logclose" title="关闭" aria-label="关闭">×</button><pre id="log"></pre></div>
 <script>
 const SPEC = [
   { key:'site', title:'站点', fields:[
@@ -547,7 +548,6 @@ async function publish() {
   render();
 })();
 </script>
-<div id="logbox"><b id="logtitle">发布日志</b><button id="logclose" title="关闭" aria-label="关闭">×</button><pre id="log"></pre></div>
 </body>
 </html>
 """
