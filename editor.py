@@ -71,6 +71,9 @@ PAGE = """<!DOCTYPE html>
             background:#0b1018; border:1px solid var(--line); border-radius:10px; padding:8px 12px;
             font-size:12px; display:none; z-index:60; box-shadow:0 10px 30px rgba(0,0,0,.5); }
   #logbox b { color:#cfe0f5; font-weight:600; }
+  #logclose { position:absolute; right:6px; top:4px; width:20px; height:20px; padding:0; line-height:1;
+              background:transparent; border:none; color:var(--dim); font-size:15px; cursor:pointer; }
+  #logclose:hover { color:var(--txt); }
   #logbox pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-all; color:#8fa3ba; line-height:1.5; }
   main { flex:1; display:flex; min-height:0; }
   .left { width:52%; display:flex; flex-direction:column; min-height:0; }
@@ -493,11 +496,20 @@ async function save() {
   }
 }
 
-function showLog(title, text) {
+let logTimer = null;
+function hideLog() {
+  document.getElementById('logbox').style.display = 'none';
+  if (logTimer) { clearTimeout(logTimer); logTimer = null; }
+}
+function showLog(title, text, autoHideMs) {
+  const box = document.getElementById('logbox');
   document.getElementById('logtitle').textContent = title;
   document.getElementById('log').textContent = text || '';
-  document.getElementById('logbox').style.display = 'block';
+  box.style.display = 'block';
+  if (logTimer) { clearTimeout(logTimer); logTimer = null; }
+  if (autoHideMs) logTimer = setTimeout(hideLog, autoHideMs);
 }
+document.getElementById('logclose').addEventListener('click', hideLog);
 
 async function publish() {
   const msg = prompt('这次改了什么？（写一句更新说明，方便以后回滚）', '更新内容');
@@ -515,11 +527,11 @@ async function publish() {
     const out = await res.json();
     if (!out.ok) {
       setStatus('发布失败', 'err');
-      showLog('发布失败', out.log || out.error || '没有返回日志');
+      showLog('发布失败', out.log || out.error || '没有返回日志');   // 失败不自动关
       return;
     }
     setStatus('已发布', 'ok');
-    showLog('发布成功 · ' + message, out.log);
+    showLog('发布成功 · ' + message, out.log, 8000);
     setTimeout(() => setStatus(''), 6000);
   } catch (e) {
     setStatus('发布失败：' + e.message, 'err');
@@ -535,7 +547,7 @@ async function publish() {
   render();
 })();
 </script>
-<div id="logbox"><b id="logtitle">发布日志</b><pre id="log"></pre></div>
+<div id="logbox"><b id="logtitle">发布日志</b><button id="logclose" title="关闭" aria-label="关闭">×</button><pre id="log"></pre></div>
 </body>
 </html>
 """
