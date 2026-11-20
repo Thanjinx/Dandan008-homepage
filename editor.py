@@ -318,6 +318,23 @@ function renderPick(box, sec, obj) {
     count.className = 'count';
     count.textContent = '共 ' + list.length + ' 本';
     bar.appendChild(count);
+    const i0 = pickState[key];
+    const left = document.createElement('button');
+    left.className = 'ghost'; left.textContent = '←'; left.title = '往前挪一格';
+    left.disabled = i0 === 0;
+    left.onclick = function () {
+      const t = list[i0]; list[i0] = list[i0 - 1]; list[i0 - 1] = t;
+      pickState[key] = i0 - 1; render();
+    };
+    bar.appendChild(left);
+    const right = document.createElement('button');
+    right.className = 'ghost'; right.textContent = '→'; right.title = '往后挪一格';
+    right.disabled = i0 >= list.length - 1;
+    right.onclick = function () {
+      const t = list[i0]; list[i0] = list[i0 + 1]; list[i0 + 1] = t;
+      pickState[key] = i0 + 1; render();
+    };
+    bar.appendChild(right);
     const del = document.createElement('button');
     del.className = 'ghost';
     del.textContent = '删这本';
