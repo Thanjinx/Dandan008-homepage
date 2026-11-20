@@ -292,7 +292,7 @@ function imageField(label, item, key) {
     const v = item[key] || '';
     if (!v) { thumb.style.display = 'none'; return; }
     thumb.style.display = 'block';
-    thumb.src = v.startsWith('http') || v.startsWith('data:') ? v : '/' + v;
+    thumb.src = (v.startsWith('http') || v.startsWith('data:')) ? v : '/files/' + v.replace(/^[/]+/, '');
   }
   syncThumb();
   input.addEventListener('input', syncThumb);
