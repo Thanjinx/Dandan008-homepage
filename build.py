@@ -29,6 +29,24 @@ def esc(text):
     )
 
 
+DEFAULT_ICON = ("data:image/svg+xml,"
+                "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E"
+                "%3Crect width='64' height='64' rx='12' fill='%230b0e14'/%3E"
+                "%3Crect x='14' y='14' width='10' height='36' fill='%235b9dff'/%3E"
+                "%3Crect x='30' y='26' width='20' height='10' fill='%237ef0c8'/%3E"
+                "%3C/svg%3E")
+
+
+def icon_href(site, prefix=""):
+    """站点图标：填了就用填的，没填就用内置的 SVG。"""
+    icon = str(site.get("icon") or "").strip()
+    if not icon:
+        return DEFAULT_ICON
+    if icon.startswith("data:") or icon.startswith("http"):
+        return icon
+    return prefix + ("" if icon.startswith("/") else "") + icon
+
+
 def render(data):
     site = data.get("site", {})
     hero = data.get("hero", {})
@@ -99,6 +117,7 @@ def render(data):
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title}</title>
+<link rel="icon" href="{icon}" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -249,6 +268,7 @@ function legacyCopy(text, done) {{
 </html>
 """.format(
         title=esc(site.get("title", "个人主页")),
+        icon=esc(icon_href(site)),
         brand=esc(site.get("brand", "")),
         dot=esc(site.get("brand_dot", ".")),
         nav=nav_html,
@@ -360,6 +380,7 @@ def render_page(site, page, notes=None):
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title} · {brand}</title>
+<link rel="icon" href="{icon}" />
 <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
@@ -382,6 +403,7 @@ def render_page(site, page, notes=None):
 </html>
 """.format(
         title=esc(page.get("title", "")),
+        icon=esc(icon_href(site, "../")),
         brand=esc(site.get("brand", "")),
         dot=esc(site.get("brand_dot", ".")),
         tag=esc(page.get("tag", "")),

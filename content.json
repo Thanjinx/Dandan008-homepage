@@ -3,7 +3,8 @@
     "title": "Dandan008-个人主页",
     "brand": "Dandan008",
     "brand_dot": ".",
-    "footer": "© 2026 Dandan008-XXC"
+    "footer": "© 2026 Dandan008-XXC",
+    "icon": ""
   },
   "nav": [
     {
@@ -127,7 +128,7 @@
   },
   "notes": {
     "title": "书架",
-    "lede": "像在图书馆里随手抽一本——抽到哪本读哪本。",
+    "lede": "抽到哪本读哪本。",
     "items": [
       {
         "id": "first-thought",

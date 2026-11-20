@@ -103,6 +103,7 @@ PAGE = """<!DOCTYPE html>
   input:focus, textarea:focus { outline:none; border-color:var(--accent); }
   textarea { min-height:70px; resize:vertical; }
 
+  .thumb { width:26px; height:26px; object-fit:cover; border:1px solid var(--line); border-radius:5px; background:#0b0e14; }
   .imgrow { display:flex; gap:8px; align-items:center; }
   .imgrow input[type="text"] { flex:1; }
   .imgrow button { white-space:nowrap; }
@@ -145,7 +146,8 @@ const SPEC = [
   { key:'site', title:'站点', fields:[
       ['title','网页标题（浏览器标签）'],
       ['brand','左上角名字'],
-      ['footer','页脚文字']
+      ['footer','页脚文字'],
+      ['icon','网页图标（浏览器标签上的小图，选一张方图）','image']
   ]},
   { key:'hero', title:'首屏', fields:[
       ['eyebrow','标题上方的小字'],
@@ -273,6 +275,7 @@ function imageField(label, item, key) {
       if (!out.ok) throw new Error(out.error || '上传失败');
       item[key] = out.path;
       input.value = out.path;
+      syncThumb();
       setStatus('图片已上传：' + out.path, 'ok');
       refreshPreview();
     } catch (e) {
@@ -282,6 +285,18 @@ function imageField(label, item, key) {
       pick.textContent = '选图片';
     }
   };
+  const thumb = document.createElement('img');
+  thumb.className = 'thumb';
+  thumb.alt = '';
+  function syncThumb() {
+    const v = item[key] || '';
+    if (!v) { thumb.style.display = 'none'; return; }
+    thumb.style.display = 'block';
+    thumb.src = v.startsWith('http') || v.startsWith('data:') ? v : '/' + v;
+  }
+  syncThumb();
+  input.addEventListener('input', syncThumb);
+  row.appendChild(thumb);
   row.appendChild(input);
   row.appendChild(pick);
   row.appendChild(file);
@@ -383,6 +398,7 @@ function render() {
     const obj = data[sec.key] || (data[sec.key] = {});
 
     for (const [k, label, type] of (sec.fields || [])) {
+      if (type === 'image') { box.appendChild(imageField(label, obj, k)); continue; }
       box.appendChild(field(label, obj[k], v => { obj[k] = v; }, type === 'textarea'));
     }
 
