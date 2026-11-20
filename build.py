@@ -285,7 +285,9 @@ def shelf_html(notes):
             cells.append(
                 '      <li class="shelf-item is-plate"><button class="plate" data-i="%d" aria-label="%s">'
                 '<img src="../%s" alt="%s" loading="lazy" /></button>'
-                '<span class="plate-base"><span class="plate-cap">%s</span></span></li>' % (i, title, img, title, title)
+                '<span class="plate-base"><span class="cap-cap"></span>'
+                '<span class="cap-die"><span class="plate-cap">%s</span></span>'
+                '<span class="cap-foot"></span></span></li>' % (i, title, img, title, title)
             )
         else:
             cells.append(
