@@ -582,6 +582,9 @@
     }
     auto = false;        // 演出期间先别领活
     busy = true;
+    stopMoves();         // 正在拉一半的框当场收掉，否则会被拖到满屏
+    frames.length = 0;
+    floaters.length = 0;
 
     const r = link.getBoundingClientRect();
     const pad = 6;

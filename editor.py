@@ -661,6 +661,8 @@ class Handler(BaseHTTPRequestHandler):
             q = parse_qs(urlparse(self.path).query)
             name = (q.get('name') or ['image.png'])[0]
             name = re.sub(r'[^0-9A-Za-z._-]', '_', name)[-80:] or 'image.png'
+            name = name.lstrip('._-') or 'image.png'   # 别以 . _ - 开头，GitHub Pages 会跳过
+            if not re.match(r'[A-Za-z0-9]', name): name = 'img-' + name
             if '.' not in name:
                 name += '.png'
             media = ROOT / 'media'
